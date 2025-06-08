@@ -11,7 +11,9 @@ export default function CharacterBreakdown({
             <div className="text-2xl font-bold">{c.char}</div>
             <div>
               <p className="text-sm text-gray-600">{c.korean_gloss}</p>
-              <p className="text-xs italic">{c.pinyin} – {c.english_gloss}</p>
+              <p className="text-xs italic">
+                {c.pinyin} – {c.english_gloss}
+              </p>
             </div>
             {/* <img src={c.strokeGif} alt="stroke order" className="h-12 w-12" /> */}
           </li>

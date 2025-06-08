@@ -10,26 +10,61 @@ export default function ScrollableWordCards({ words }: { words: any }) {
   const updateScrollState = () => {
     const el = scrollRef.current;
     if (!el) return;
-    setShowLeft(el.scrollLeft > 0);
-    setShowRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-  };
 
-  const scrollLeft = () => {
-    scrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
-  };
+    const scrollLeft = el.scrollLeft;
+    const scrollWidth = el.scrollWidth;
+    const clientWidth = el.clientWidth;
 
-  const scrollRight = () => {
-    scrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+    // Use a slightly higher threshold to absorb 7–8px rounding
+    const atStart = scrollLeft <= 10;
+    const atEnd = scrollLeft + clientWidth >= scrollWidth - 10;
+
+    setShowLeft(!atStart);
+    setShowRight(!atEnd);
   };
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
+    // Ensure visibility is set after layout/render
+    const handleResize = () => {
+      requestAnimationFrame(updateScrollState);
+    };
+
     updateScrollState();
     el.addEventListener('scroll', updateScrollState);
-    return () => el.removeEventListener('scroll', updateScrollState);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
+
+  const scrollByCard = (direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const firstCard = el.querySelector('.snap-start') as HTMLElement;
+    if (!firstCard) return;
+
+    const cardWidth = firstCard.getBoundingClientRect().width;
+    const gap = 16; // Tailwind gap-4 = 16px
+    const scrollAmount = cardWidth + gap;
+
+    if (direction === 'left') {
+      el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else {
+      // Clamp scroll to not overshoot
+      const remainingScroll = el.scrollWidth - el.clientWidth - el.scrollLeft;
+      const actualScroll = Math.min(scrollAmount, remainingScroll);
+      el.scrollBy({ left: actualScroll, behavior: 'smooth' });
+    }
+  };
+
+  const scrollLeft = () => scrollByCard('left');
+  const scrollRight = () => scrollByCard('right');
 
   return (
     <div className="relative">

@@ -26,7 +26,6 @@ export default function ResultBlock({ result }: { result: any }) {
         </div>
       )}
       {result.words && <ScrollableWordCards words={result.words} />}
-
-    </div> 
+    </div>
   );
 }

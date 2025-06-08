@@ -30,8 +30,18 @@ onset = {
 
 # final-position consonants (jongseong)
 coda = {
-    'ᆨ': 'k',   'ᆮ': 't',   'ᆸ': 'p',   'ᇁ': 'p',
-    'ᆫ': 'n',   'ᆼ': 'ng',  'ᆷ': 'm',   'ᆯ': 'l',
+    'ᆨ': 'k', 'ᆩ': 'k', 'ᆪ': 'k',  # ㄱ
+    'ᆫ': 'n', 'ᆬ': 'n', 'ᆭ': 'n',  # ㄴ
+    'ᆮ': 't',
+    'ᆯ': 'l', 'ᆰ': 'k', 'ᆱ': 'm', 'ᆲ': 'p',
+    'ᆳ': 's', 'ᆴ': 't', 'ᆵ': 'p', 'ᆶ': 'l',
+    'ᆷ': 'm',
+    'ᆸ': 'p', 'ᆹ': 'p',
+    'ᆺ': 't', 'ᆻ': 't', 
+    'ᆼ': 'ng',
+    'ᆽ': 't', 'ᆾ': 't', 'ᇀ': 't',
+    'ᇁ': 'p',
+    'ᇂ': 't',
     None: '',
 }
 
@@ -69,6 +79,36 @@ double_consonant_final = {
     'ㅀ': ('ㄹ', 'ᇂ'),  'ㅄ': ('ㅂ', 'ㅅ'),  'ㅆ': ('ㅅ', 'ㅅ')
 }
 
+# Manual map: final jamo → matching initial jamo
+final_to_initial_map = {
+    'ᆨ': 'ᄀ',  # ㄱ
+    'ᆩ': 'ᄁ',  # ㄲ
+    'ᆪ': 'ᄀ',  # ㄱㅅ → ㄱ
+    'ᆫ': 'ᄂ',  # ㄴ
+    'ᆬ': 'ᄂ',  # ㄴㅈ → ㄴ
+    'ᆭ': 'ᄂ',  # ㄴㅎ → ㄴ
+    'ᆮ': 'ᄃ',  # ㄷ
+    'ᆯ': 'ᄅ',  # ㄹ
+    'ᆰ': 'ᄀ',  # ㄹㄱ → ㄱ
+    'ᆱ': 'ᄆ',  # ㄹㅁ → ㅁ
+    'ᆲ': 'ᄇ',  # ㄹㅂ → ㅂ
+    'ᆳ': 'ᄉ',  # ㄹㅅ → ㅅ
+    'ᆴ': 'ᄐ',  # ㄹㅌ → ㅌ
+    'ᆵ': 'ᄑ',  # ㄹㅍ → ㅍ
+    'ᆶ': 'ᄒ',  # ㄹㅎ → ㅎ
+    'ᆷ': 'ᄆ',  # ㅁ
+    'ᆸ': 'ᄇ',  # ㅂ
+    'ᆹ': 'ᄇ',  # ㅂㅅ → ㅂ
+    'ᆺ': 'ᄉ',  # ㅅ
+    'ᆻ': 'ᄊ',  # ㅆ
+    'ᆼ': 'ᄋ',  # ㅇ (nasal carryover)
+    'ᆽ': 'ᄌ',  # ㅈ
+    'ᆾ': 'ᄎ',  # ㅊ
+    'ᇀ': 'ᄐ',  # ㅌ
+    'ᇁ': 'ᄑ',  # ㅍ
+    'ᇂ': 'ᄒ',  # ㅎ
+}
+
 NULL_CONSONANT = 'ᄋ'
 HANGUL_OFFSET = 0xAC00
 
@@ -102,8 +142,10 @@ class Syllable:
         return HANGUL_OFFSET <= ord(ch) <= 0xD7A3
 
     def final_to_initial(self, final_jamo: str) -> str:
-        idx = unicode_final.index(final_jamo)
-        return unicode_initial[idx]
+        if final_jamo in final_to_initial_map:
+            return final_to_initial_map[final_jamo]
+        print(f"⚠️ Warning: No mapping for final_jamo={final_jamo!r}")
+        return 'ᄋ'  # fallback null consonant (safe default)
 
     def __repr__(self):
         if not self.initial:
