@@ -1,4 +1,5 @@
-import CharacterBreakdown from './CharacterBreakdown';
+import ScrollableWordCards from './ScrollableWordCards';
+// import { ResultType } from '../types/resultTypes';
 
 export default function ResultBlock({ result }: { result: any }) {
   return (
@@ -24,7 +25,8 @@ export default function ResultBlock({ result }: { result: any }) {
           </p>
         </div>
       )}
-      <CharacterBreakdown characters={result.characters} />
-    </div>
+      {result.words && <ScrollableWordCards words={result.words} />}
+
+    </div> 
   );
 }

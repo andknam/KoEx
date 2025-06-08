@@ -6,11 +6,11 @@ export default function App() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  
+
   //   try {
   //     const response = await fetch(`http://localhost:8000/analyze?word=${encodeURIComponent(input)}`);
   //     const data = await response.json();
-  
+
   //     // Transform API response into your frontend state shape if necessary
   //     setResult({
   //       koreanDef: data.definition_kr,
@@ -41,31 +41,22 @@ export default function App() {
 
     try {
       console.log(input);
-      const response = await fetch(`http://localhost:8000/analyze?word=${encodeURIComponent(input)}`);
+      const response = await fetch(
+        `http://localhost:8000/analyze?input=${encodeURIComponent(input)}`
+      );
       const data = await response.json();
 
+      console.log(data.words);
+
       setResult({
-        koreanDef: "placeholder",
+        koreanDef: 'placeholder',
         englishDef: 'Start: the act of beginning something',
         romanized: data.romanization,
         example: {
           sentence: '새로운 프로젝트를 오늘 시작했어요.',
           translation: 'I started a new project today.',
         },
-        characters: [
-          {
-            char: '시',
-            hanja: '始',
-            pinyin: 'shǐ',
-            meaning: 'begin; start',
-          },
-          {
-            char: '작',
-            hanja: '作',
-            pinyin: 'zuò',
-            meaning: 'to make; to do; to act',
-          },
-        ],
+        words: data.words
       });
     } catch (err) {
       console.error('Error fetching analysis:', err);

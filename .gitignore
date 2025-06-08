@@ -40,6 +40,7 @@ backend/html_dumps/
 backend/raw_html_samples/
 
 # ---- If you have a frontend (React/Vite/Next.js) ----
+node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/build/

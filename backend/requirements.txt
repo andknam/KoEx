@@ -2,9 +2,11 @@ fastapi
 uvicorn[standard]
 hanja
 konlpy
+openai>=1.0.0
 
 # If you use Mecab (optional):
 mecab-python3
 
 # For CORS if needed (already used)
 python-multipart
+

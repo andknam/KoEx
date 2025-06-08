@@ -1,22 +1,40 @@
+import re
+import os
+
 from hanja import translate
-from pycccedict import CedictParser  # or your custom hanja-pinyin-meaning dict
+from konlpy.tag import Okt
 
-# Load your hanja→pinyin→meaning dict
-with open("hanja_char_dict.json", encoding="utf-8") as f:
-    hanja_data = json.load(f)
+from backend.gpt.hanja_batcher import generate_hanja_for_words
 
-def decompose_korean_word(word: str) -> list:
-    results = []
-    for ch in word:
-        hanja_char = translate(ch, 'substitution')
-        if ch == hanja_char:
-            results.append({"char": ch, "hanja": None, "pinyin": None, "meaning": None})
-        else:
-            info = hanja_data.get(hanja_char, {})
-            results.append({
-                "char": ch,
-                "hanja": hanja_char,
-                "pinyin": info.get("pinyin"),
-                "meaning": info.get("meaning")
-            })
+okt = Okt()
+
+def load_substitution_dict():
+    base_path = os.path.dirname(__import__('hanja').__file__)
+    path = os.path.join(base_path, 'data', 'substitution.txt')
+
+    substitution_dict = {}
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            if '\t' in line:
+                word, hanja = line.strip().split('\t')
+                substitution_dict[word] = hanja
+    return substitution_dict
+
+def filter_korean_tokens(text):
+    # Remove non-Hangul (excluding spaces)
+    text = re.sub(r"[^\uac00-\ud7a3\s]", "", text)
+    
+    # Get part-of-speech tagged tokens
+    tagged = okt.pos(text)
+
+    # Keep only desired POS
+    allowed_pos = {'Noun', 'Adverb', 'Verb'}
+    filtered = [word for word, tag in tagged if tag in allowed_pos]
+    
+    return filtered
+
+def korean_to_hanja(input: str) -> list:
+    filtered_tokens = filter_korean_tokens(input)
+    results = generate_hanja_for_words(filtered_tokens)
+
     return results
