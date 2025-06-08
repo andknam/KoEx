@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+hanja
+konlpy
+
+# If you use Mecab (optional):
+mecab-python3
+
+# For CORS if needed (already used)
+python-multipart

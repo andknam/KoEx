@@ -1,0 +1,52 @@
+# ---- Python backend (FastAPI, scraping, LLM, etc.) ----
+__pycache__/
+*.py[cod]
+*.so
+*.log
+*.tmp
+*.bak
+.cache/
+.env
+.env.*
+*.env
+*.prof
+*.pid
+
+# Local cache file for definitions
+backend/definition_cache_kr.json
+
+# Jupyter notebook outputs
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDE and editor configs
+.vscode/
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Hugging Face and LLM downloads
+~/.cache/huggingface/
+~/.huggingface/
+
+# Raw HTML or test data dumps (optional)
+backend/html_dumps/
+backend/raw_html_samples/
+
+# ---- If you have a frontend (React/Vite/Next.js) ----
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/.env
+
+# Local virtual environments
+venv/
+.venv/
+env/
