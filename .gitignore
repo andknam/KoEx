@@ -47,7 +47,14 @@ frontend/build/
 frontend/.next/
 frontend/.env
 
-# Local virtual environments
+# Ignore all virtual environments (including nested ones)
 venv/
 .venv/
 env/
+backend/venv/
+
+# Python venv and caches
+backend/venv/
+backend/.mypy_cache/
+**/__pycache__/
+*.py[cod]
