@@ -1,4 +1,4 @@
-export default function CharacterBreakdown({
+export default function HanjaBreakdown({
   characters,
 }: {
   characters: any;

@@ -17,19 +17,22 @@ export default function App() {
       );
       const data = await response.json();
 
-      const filteredWords = data.words.filter(
+      const filteredHanjaWords = data.hanja_words.filter(
         (item) => item.hanja && item.characters && item.characters.length > 0
       );
 
+      console.log(data);
+
       setResult({
         koreanDef: 'placeholder',
-        englishDef: 'placeholder',
+        sentenceGloss: data.sentence_gloss,
         romanized: data.romanization,
         example: {
           sentence: '새로운 프로젝트를 오늘 시작했어요.',
           translation: 'I started a new project today.',
         },
-        words: filteredWords,
+        koreanWords: data.word_info,
+        hanjaWords: filteredHanjaWords,
       });
     } catch (err) {
       console.error('Error fetching analysis:', err);

@@ -1,114 +1,122 @@
 import { useRef, useEffect, useState } from 'react';
-import CharacterBreakdown from './CharacterBreakdown';
+import HanjaBreakdown from './HanjaBreakdown';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function ScrollableWordCards({ words }: { words: any }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeft, setShowLeft] = useState(false);
-  const [showRight, setShowRight] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showLeft, setShowLeft] = useState(false);
+    const [showRight, setShowRight] = useState(false);
 
-  const updateScrollState = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const scrollLeft = el.scrollLeft;
-    const scrollWidth = el.scrollWidth;
-    const clientWidth = el.clientWidth;
-
-    // Use a slightly higher threshold to absorb 7–8px rounding
-    const atStart = scrollLeft <= 10;
-    const atEnd = scrollLeft + clientWidth >= scrollWidth - 10;
-
-    setShowLeft(!atStart);
-    setShowRight(!atEnd);
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    // Ensure visibility is set after layout/render
-    const handleResize = () => {
-      requestAnimationFrame(updateScrollState);
-    };
-
-    updateScrollState();
-    el.addEventListener('scroll', updateScrollState);
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      el.removeEventListener('scroll', updateScrollState);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  const scrollByCard = (direction: 'left' | 'right') => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const firstCard = el.querySelector('.snap-start') as HTMLElement;
-    if (!firstCard) return;
-
-    const cardWidth = firstCard.getBoundingClientRect().width;
-    const gap = 16; // Tailwind gap-4 = 16px
-    const scrollAmount = cardWidth + gap;
-
-    if (direction === 'left') {
-      el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    } else {
-      // Clamp scroll to not overshoot
-      const remainingScroll = el.scrollWidth - el.clientWidth - el.scrollLeft;
-      const actualScroll = Math.min(scrollAmount, remainingScroll);
-      el.scrollBy({ left: actualScroll, behavior: 'smooth' });
+    if (!words || words.length === 0) {
+        return (
+        <p className="text-sm text-gray-500">
+            No words with Chinese character origin found.
+        </p>
+        );
     }
-  };
 
-  const scrollLeft = () => scrollByCard('left');
-  const scrollRight = () => scrollByCard('right');
+    const updateScrollState = () => {
+        const el = scrollRef.current;
+        if (!el) return;
 
-  return (
-    <div className="relative">
-      {/* Left Arrow */}
-      <button
-        onClick={scrollLeft}
-        className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-transparent hover:bg-white/20 transition-all duration-700 ease-in-out ${
-          showLeft
-            ? 'opacity-100 scale-100 pointer-events-auto'
-            : 'opacity-0 scale-95 pointer-events-none'
-        }`}
-      >
-        <ArrowLeft className="w-6 h-6 text-gray-700" />
-      </button>
+        const scrollLeft = el.scrollLeft;
+        const scrollWidth = el.scrollWidth;
+        const clientWidth = el.clientWidth;
 
-      {/* Scrollable Word Cards */}
-      <div
-        ref={scrollRef}
-        className="flex overflow-x-auto gap-4 p-2 scrollbar-hidden scroll-smooth snap-x snap-mandatory"
-      >
-        {words.map((word, i) => (
-          <div
-            key={i}
-            className="snap-start min-w-[200px] max-w-xs shrink-0 p-3 border rounded bg-white/80 shadow text-sm"
-          >
-            <p className="font-semibold mb-2">
-              {word.korean} ({word.hanja})
-            </p>
-            <CharacterBreakdown characters={word.characters} />
-          </div>
-        ))}
-      </div>
+        // Use a slightly higher threshold to absorb 7–8px rounding
+        const atStart = scrollLeft <= 10;
+        const atEnd = scrollLeft + clientWidth >= scrollWidth - 10;
 
-      {/* Right Arrow */}
-      <button
-        onClick={scrollRight}
-        className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-transparent hover:bg-white/20 transition-all duration-700 ease-in-out ${
-          showRight
-            ? 'opacity-100 scale-100 pointer-events-auto'
-            : 'opacity-0 scale-95 pointer-events-none'
-        }`}
-      >
-        <ArrowRight className="w-6 h-6 text-gray-700" />
-      </button>
-    </div>
-  );
+        setShowLeft(!atStart);
+        setShowRight(!atEnd);
+    };
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+
+        // Ensure visibility is set after layout/render
+        const handleResize = () => {
+        requestAnimationFrame(updateScrollState);
+        };
+
+        updateScrollState();
+        el.addEventListener('scroll', updateScrollState);
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+        el.removeEventListener('scroll', updateScrollState);
+        window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
+    const scrollByCard = (direction: 'left' | 'right') => {
+        const el = scrollRef.current;
+        if (!el) return;
+
+        const firstCard = el.querySelector('.snap-start') as HTMLElement;
+        if (!firstCard) return;
+
+        const cardWidth = firstCard.getBoundingClientRect().width;
+        const gap = 16; // Tailwind gap-4 = 16px
+        const scrollAmount = cardWidth + gap;
+
+        if (direction === 'left') {
+        el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        } else {
+        // Clamp scroll to not overshoot
+        const remainingScroll = el.scrollWidth - el.clientWidth - el.scrollLeft;
+        const actualScroll = Math.min(scrollAmount, remainingScroll);
+        el.scrollBy({ left: actualScroll, behavior: 'smooth' });
+        }
+    };
+
+    const scrollLeft = () => scrollByCard('left');
+    const scrollRight = () => scrollByCard('right');
+
+    return (
+        <div className="relative">
+        {/* Left Arrow */}
+        <button
+            onClick={scrollLeft}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-transparent hover:bg-white/20 transition-all duration-700 ease-in-out ${
+            showLeft
+                ? 'opacity-100 scale-100 pointer-events-auto'
+                : 'opacity-0 scale-95 pointer-events-none'
+            }`}
+        >
+            <ArrowLeft className="w-6 h-6 text-gray-700" />
+        </button>
+
+        {/* Scrollable Word Cards */}
+        <div
+            ref={scrollRef}
+            className="flex overflow-x-auto gap-4 p-2 scrollbar-hidden scroll-smooth snap-x snap-mandatory"
+        >
+            {words.map((word, i) => (
+            <div
+                key={i}
+                className="snap-start min-w-[200px] max-w-xs shrink-0 p-3 border rounded bg-white/80 shadow text-sm"
+            >
+                <p className="font-semibold mb-2">
+                {word.korean} ({word.hanja})
+                </p>
+                <HanjaBreakdown characters={word.characters} />
+            </div>
+            ))}
+        </div>
+
+        {/* Right Arrow */}
+        <button
+            onClick={scrollRight}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-transparent hover:bg-white/20 transition-all duration-700 ease-in-out ${
+            showRight
+                ? 'opacity-100 scale-100 pointer-events-auto'
+                : 'opacity-0 scale-95 pointer-events-none'
+            }`}
+        >
+            <ArrowRight className="w-6 h-6 text-gray-700" />
+        </button>
+        </div>
+    );
 }

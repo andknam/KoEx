@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from backend.gpt.korean_analyzer import analyze_korean_sentence
 
 from backend.romanizer import romanize
 from backend.hanja_utils.utils import korean_to_hanja
@@ -101,9 +102,14 @@ app.add_middleware(
 
 @app.get("/analyze")
 def analyze(input: str):
+    hanja_results = korean_to_hanja(input)
+
+    korean_words = [entry["korean"] for entry in hanja_results]
+    sentence_gloss, korean_word_info = analyze_korean_sentence(input, korean_words)
+
     return {
         "romanization": romanize(input),
-        "words": korean_to_hanja(input),
-        "definition_kr": "...",
-        "definition_en": "...",
+        "hanja_words": hanja_results,
+        "sentence_gloss": sentence_gloss,
+        "word_info": korean_word_info,
     }

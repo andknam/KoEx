@@ -1,3 +1,4 @@
+import KoreanBreakdown from './KoreanBreakdown';
 import ScrollableWordCards from './ScrollableWordCards';
 // import { ResultType } from '../types/resultTypes';
 
@@ -8,10 +9,13 @@ export default function ResultBlock({ result }: { result: any }) {
         <p className="font-semibold">Korean Definition:</p>
         <p>{result.koreanDef}</p>
       </div>
-      <div>
-        <p className="font-semibold">English Definition:</p>
-        <p>{result.englishDef}</p>
-      </div>
+      {result.sentenceGloss && result.sentenceGloss.trim() !== "" && (
+        <div>
+          <p className="font-semibold">English Definition:</p>
+          <p>{result.sentenceGloss}</p>
+        </div>
+      )}
+      {result.koreanWords && <KoreanBreakdown words={result.koreanWords} />}
       <div>
         <p className="font-semibold">Romanization:</p>
         <p>{result.romanized}</p>
@@ -25,7 +29,7 @@ export default function ResultBlock({ result }: { result: any }) {
           </p>
         </div>
       )}
-      {result.words && <ScrollableWordCards words={result.words} />}
+      {result.hanjaWords && <ScrollableWordCards words={result.hanjaWords} />}
     </div>
   );
 }

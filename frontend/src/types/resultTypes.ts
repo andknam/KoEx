@@ -18,7 +18,7 @@ export type ExampleInfo = {
 
 export type ResultType = {
   koreanDef: string;
-  englishDef: string;
+  sentenceGloss: string;
   romanized: string;
   example?: ExampleInfo;
   words?: WordInfo[];
