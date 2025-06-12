@@ -102,14 +102,25 @@ app.add_middleware(
 
 @app.get("/analyze")
 def analyze(input: str):
+    # get all info about each hanja
     hanja_results = korean_to_hanja(input)
 
+    # get all info about korean words
+        # word, pos, meaning, example gloss
+    # TODO: filter out determiners / particles / hashmap for specific verbs
+    # i.e. 있 verb (conjugated form of 있다)
     korean_words = [entry["korean"] for entry in hanja_results]
     sentence_gloss, korean_word_info = analyze_korean_sentence(input, korean_words)
+
+    # for testing
+    # hanja_results = []
+    # sentence_gloss = ''
+    # korean_word_info = []
 
     return {
         "romanization": romanize(input),
         "hanja_words": hanja_results,
         "sentence_gloss": sentence_gloss,
         "word_info": korean_word_info,
+        # "test": test,
     }

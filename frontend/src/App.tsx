@@ -24,6 +24,7 @@ export default function App() {
       console.log(data);
 
       setResult({
+        inputQuery: input,
         koreanDef: 'placeholder',
         sentenceGloss: data.sentence_gloss,
         romanized: data.romanization,

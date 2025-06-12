@@ -7,14 +7,6 @@ export default function ScrollableWordCards({ words }: { words: any }) {
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(false);
 
-    if (!words || words.length === 0) {
-        return (
-        <p className="text-sm text-gray-500">
-            No words with Chinese character origin found.
-        </p>
-        );
-    }
-
     const updateScrollState = () => {
         const el = scrollRef.current;
         if (!el) return;
@@ -73,6 +65,14 @@ export default function ScrollableWordCards({ words }: { words: any }) {
 
     const scrollLeft = () => scrollByCard('left');
     const scrollRight = () => scrollByCard('right');
+
+    if (!words || words.length === 0) {
+        return (
+        <p className="text-sm text-gray-500">
+            No words with Chinese character origin found.
+        </p>
+        );
+    }
 
     return (
         <div className="relative">
