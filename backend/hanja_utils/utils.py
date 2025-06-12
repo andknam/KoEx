@@ -13,11 +13,14 @@ komoran = Komoran(userdic=user_dic_path)
 sajaseongeo_list = ["유유자적", "고진감래", "전화위복", "각골난망"]
 
 def strip_suffixes(text: str) -> str:
-    # Simple rule: remove '한' when it comes directly after 사자성어
+    # TODO: extend this to other suffixes
+    # remove '한' when it comes directly after 사자성어
     for phrase in sajaseongeo_list:
         text = text.replace(phrase + "한", phrase)
     return text
 
+# trick used to avoid collison with regular symbols
+# not split up by tokenizers
 def generate_placeholder(idx: int) -> str:
     return f"＠＠{idx}"  # Full-width @ (U+FF20)
 
@@ -53,6 +56,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
             continue
 
         # VV/VX/VA/VCN/VCP + EC/EF
+        # verb/adj stems + verb ending
         if tag in {'VV', 'VX', 'VA', 'VCN', 'VCP'} and i + 1 < len(tagged):
             next_word, next_tag = tagged[i + 1]
             if next_tag in {'EC', 'EF'}:
@@ -61,6 +65,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
                 continue
 
         # NNG + XSN (e.g., 가능성)
+        # noun + noun suffix = compound abstract noun
         if tag == 'NNG' and i + 1 < len(tagged):
             next_word, next_tag = tagged[i + 1]
             if next_tag == 'XSN':
@@ -69,6 +74,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
                 continue
 
         # NNG + XSV + EF (e.g., 변화하다)
+        # noun + verb-forming suffix + ending --> verb derived from noun
         if (
             tag == 'NNG'
             and i + 2 < len(tagged)
@@ -80,6 +86,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
             continue
 
         # NNG + XSA + EF (e.g., 평화롭다)
+        # noun + adj-forming suffix + ending --> adj derived from noun
         if (
             tag == 'NNG'
             and i + 2 < len(tagged)
@@ -97,7 +104,10 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
     return grouped
 
 def filter_allowed_tokens(tagged: list[tuple[str, str]], placeholder_map: dict) -> list[str]:
-    """Filters by allowed POS and replaces placeholders."""
+    """
+    Filters morphemes to include only meaningful content tokens,
+    while restoring any placeholder-replaced 사자성어.
+    """
     allowed_pos = {
         'NNG', 'NNP', 'NNB', 'NR',      # Nouns
         'VV', 'VA', 'VX', 'VCN', 'VCP', # Verbs, adjectives, auxiliary, copula
@@ -122,13 +132,28 @@ def filter_allowed_tokens(tagged: list[tuple[str, str]], placeholder_map: dict) 
     return final_tokens
 
 def filter_korean_tokens(text: str) -> list[str]:
-    text = preprocess_text(text)
-    text, placeholder_map = replace_sajaseongeo_with_placeholders(text)
-    tagged = komoran.pos(text)
-    return filter_allowed_tokens(tagged, placeholder_map)
+    """
+    Full pipeline to:
+    - Preprocess the text (suffix removal + non-Hangul removal)
+    - Replace 사자성어 with placeholders
+    - Group morphologically relevant constructions
+    - Filter tokens by POS
 
-def korean_to_hanja(input: str) -> tuple[list, list]:
-    filtered_tokens = filter_korean_tokens(input)
+    Returns a list of surface form words
+    """
+    preprocessed_text = preprocess_text(text)
+    text_w_placeholder, sajaseongeo_placeholder_map = replace_sajaseongeo_with_placeholders(preprocessed_text)
+    tagged_text = komoran.pos(text_w_placeholder)
+    return filter_allowed_tokens(tagged_text, sajaseongeo_placeholder_map)
+
+def korean_to_hanja(input_query: str) -> tuple[list, list]:
+    """
+    Main entry point: takes Korean text, extracts key content words,
+    and generates hanja-based information using the hanja_batcher.
+    
+    Returns a tuple: (hanja_enriched_output, filtered_tokens)
+    """
+    filtered_tokens = filter_korean_tokens(input_query)
     return generate_hanja_for_words(filtered_tokens)
 
 # if __name__ == "__main__":
