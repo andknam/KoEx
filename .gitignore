@@ -55,6 +55,17 @@ backend/venv/
 
 # Python venv and caches
 backend/venv/
+backend/venv-koex/
 backend/.mypy_cache/
 **/__pycache__/
 *.py[cod]
+
+# Vector DB (Qdrant local mode)
+qdrant_storage/
+
+# Dev/test files
+backend/test.py
+backend/requirements-koex.txt
+
+# Optional: local automation
+Makefile
