@@ -1,27 +1,36 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import InputForm from './components/InputForm';
 import ResultBlock from './components/ResultBlock';
 
 export default function App() {
-  const [input, setInput] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null); // useRef instead of useState
   const [loading, setLoading] = useState(false);
+  const [progressMessages, setProgressMessages] = useState<string[]>([]);
   const [result, setResult] = useState<any>(null);
 
-  const handleSubmit = async () => {
-    setLoading(true);
+  const handleSubmit = useCallback(() => {
+    const input = inputRef.current?.value ?? '';
+    if (!input.trim()) return;
 
-    try {
-      console.log(input);
-      const response = await fetch(
-        `http://localhost:8000/analyze?input=${encodeURIComponent(input)}`
-      );
-      const data = await response.json();
+    setLoading(true);
+    setProgressMessages([]);
+    setResult(null);
+
+    const eventSource = new EventSource(
+      `http://localhost:8000/analyze-stream?input=${encodeURIComponent(input)}`
+    );
+
+    eventSource.addEventListener('progress', (event: MessageEvent) => {
+      setProgressMessages((prev) => [...prev, event.data]);
+    });
+
+    eventSource.addEventListener('result', (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
 
       const filteredHanjaWords = data.hanja_words.filter(
-        (item) => item.hanja && item.characters && item.characters.length > 0
+        (item: any) =>
+          item.hanja && item.characters && item.characters.length > 0
       );
-
-      console.log(data);
 
       setResult({
         inputQuery: input,
@@ -35,21 +44,35 @@ export default function App() {
         koreanWords: data.word_info,
         hanjaWords: filteredHanjaWords,
       });
-    } catch (err) {
-      console.error('Error fetching analysis:', err);
-      // optionally show fallback or error UI
-    } finally {
+
+      if (inputRef.current) inputRef.current.value = ''; // clear manually
       setLoading(false);
-    }
-  };
+      eventSource.close();
+    });
+
+    eventSource.onerror = () => {
+      console.error('SSE connection failed.');
+      setProgressMessages([
+        'Something went wrong while analyzing the input query.',
+      ]);
+      setLoading(false);
+      eventSource.close();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <h1 className="text-3xl font-bold mb-4">KoEx</h1>
 
-      <InputForm input={input} setInput={setInput} onSubmit={handleSubmit} />
+      <InputForm inputRef={inputRef} onSubmit={handleSubmit} />
 
-      {loading && <p>Loading...</p>}
+      {loading && (
+        <ul className="text-sm text-gray-600 mb-4 space-y-1">
+          {progressMessages.map((msg, i) => (
+            <li key={i} className="animate-pulse">{msg}</li>
+          ))}
+        </ul>
+      )}
 
       {result && <ResultBlock result={result} />}
     </div>

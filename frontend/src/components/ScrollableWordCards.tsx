@@ -11,14 +11,17 @@ export default function ScrollableWordCards({ words }: { words: any }) {
         const el = scrollRef.current;
         if (!el) return;
 
+        // curr horizontal scroll pos, total scrollable width, visible width
         const scrollLeft = el.scrollLeft;
         const scrollWidth = el.scrollWidth;
         const clientWidth = el.clientWidth;
 
-        // Use a slightly higher threshold to absorb 7–8px rounding
+        // check if we are at start of end of range
+        // use threshold of 10 px to avoid rounding issue errors
         const atStart = scrollLeft <= 10;
         const atEnd = scrollLeft + clientWidth >= scrollWidth - 10;
 
+        // show/hide arrows based on pos
         setShowLeft(!atStart);
         setShowRight(!atEnd);
     };
@@ -29,16 +32,18 @@ export default function ScrollableWordCards({ words }: { words: any }) {
 
         // Ensure visibility is set after layout/render
         const handleResize = () => {
-        requestAnimationFrame(updateScrollState);
+            requestAnimationFrame(updateScrollState);
         };
-
         updateScrollState();
+
+        // add scroll and resize listeners
         el.addEventListener('scroll', updateScrollState);
         window.addEventListener('resize', handleResize);
 
+        // cleanup listeners on dismount
         return () => {
-        el.removeEventListener('scroll', updateScrollState);
-        window.removeEventListener('resize', handleResize);
+            el.removeEventListener('scroll', updateScrollState);
+            window.removeEventListener('resize', handleResize);
         };
     }, []);
 
@@ -46,26 +51,30 @@ export default function ScrollableWordCards({ words }: { words: any }) {
         const el = scrollRef.current;
         if (!el) return;
 
+        // find first card with snap-start elem, used for width calculation
         const firstCard = el.querySelector('.snap-start') as HTMLElement;
         if (!firstCard) return;
 
+        // get width of card, account for gap betwen cards
         const cardWidth = firstCard.getBoundingClientRect().width;
         const gap = 16; // Tailwind gap-4 = 16px
         const scrollAmount = cardWidth + gap;
 
+        // scroll to the left by one card
         if (direction === 'left') {
-        el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         } else {
-        // Clamp scroll to not overshoot
-        const remainingScroll = el.scrollWidth - el.clientWidth - el.scrollLeft;
-        const actualScroll = Math.min(scrollAmount, remainingScroll);
-        el.scrollBy({ left: actualScroll, behavior: 'smooth' });
+            // Clamp scroll to not overshoot
+            const remainingScroll = el.scrollWidth - el.clientWidth - el.scrollLeft;
+            const actualScroll = Math.min(scrollAmount, remainingScroll);
+            el.scrollBy({ left: actualScroll, behavior: 'smooth' });
         }
     };
 
     const scrollLeft = () => scrollByCard('left');
     const scrollRight = () => scrollByCard('right');
 
+    // no words with hanja
     if (!words || words.length === 0) {
         return (
         <p className="text-sm text-gray-500">
