@@ -2,8 +2,6 @@
 
 AI-powered Korean language learning tool.
 
----
-
 ## Features
 
 ### Language Analysis
