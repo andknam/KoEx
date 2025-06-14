@@ -27,6 +27,8 @@ export default function App() {
     eventSource.addEventListener('result', (event: MessageEvent) => {
       const data = JSON.parse(event.data);
 
+      console.log(data);
+
       const filteredHanjaWords = data.hanja_words.filter(
         (item: any) =>
           item.hanja && item.characters && item.characters.length > 0
