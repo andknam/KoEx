@@ -1,6 +1,6 @@
-# KoEx (Korean Explain)
+# KoEx
 
-AI-powered Korean language learning tool.
+*Korean Explainer* is an AI-powered tool for analyzing and learning Korean.
 
 ## Features
 
