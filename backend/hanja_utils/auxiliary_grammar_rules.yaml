@@ -1,0 +1,78 @@
+- name: intent_future
+  pattern:
+    - tag: VV
+    - tag: EP
+    - tag: EF
+
+- name: necessity_intent
+  pattern:
+    - tag: VV
+    - tag: EC
+    - tag: VX
+    - tag: EP
+    - tag: EF
+
+- name: try_to_do
+  pattern:
+    - tag: VV
+    - token: 려고
+      tag: EC
+    - tag: VV
+    - tag: EF
+
+- name: want_to
+  pattern:
+    - tag: VV
+    - token: 고
+      tag: EC
+    - token: 싶
+      tag: VA
+    - tag: EF
+
+- name: can_do
+  pattern:
+    - tag: VV
+    - tag: ETM
+    - token: 수
+      tag: NNG
+    - tag: VV
+    - tag: EF
+
+- name: negation
+  pattern:
+    - tag: VV
+    - token: 지
+      tag: EC
+    - token: 않
+      tag: VX
+    - tag: EF
+
+- name: negation_adverb
+  pattern:
+    - token: 안
+      tag: MAG
+    - tag: VV
+    - tag: EF
+
+- name: negation_adverb_past
+  pattern:
+    - token: 안
+      tag: MAG
+    - tag: VV
+    - tag: EP
+    - tag: EF
+
+- name: progressive
+  pattern:
+    - tag: VV
+    - token: 고
+      tag: EC
+    - token: 있
+      tag: VX
+    - tag: EF
+
+- name: past
+  pattern:
+    - tag: VV
+    - tag: EP
+    - tag: EF

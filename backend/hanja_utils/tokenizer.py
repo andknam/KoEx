@@ -1,16 +1,14 @@
-import re
+from konlpy.tag import Komoran
 import os
-from konlpy.tag import Okt, Komoran
-from backend.gpt.hanja_batcher import generate_hanja_for_words
-
-okt = Okt()
+import re
 
 current_dir = os.path.dirname(__file__)
 user_dic_path = os.path.join(current_dir, "user.dic")
 komoran = Komoran(userdic=user_dic_path)
 
-# Define 사자성어 list
 sajaseongeo_list = ["유유자적", "고진감래", "전화위복", "각골난망"]
+
+particle_tags = {'JKS', 'JKC', 'JKO', 'JKB', 'JKG', 'JX', 'JC'}
 
 def strip_suffixes(text: str) -> str:
     # TODO: extend this to other suffixes
@@ -42,9 +40,7 @@ def replace_sajaseongeo_with_placeholders(text: str) -> tuple[str, dict]:
 
     return text, placeholder_map
 
-particle_tags = {'JKS', 'JKC', 'JKO', 'JKB', 'JKG', 'JX', 'JC'}
-
-def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
+def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[tuple[str, str]]:
     grouped = []
     i = 0
     while i < len(tagged):
@@ -60,7 +56,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
         if tag in {'VV', 'VX', 'VA', 'VCN', 'VCP'} and i + 1 < len(tagged):
             next_word, next_tag = tagged[i + 1]
             if next_tag in {'EC', 'EF'}:
-                grouped.append(word + next_word)
+                grouped.append((word + next_word, tag))
                 i += 2
                 continue
 
@@ -69,7 +65,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
         if tag == 'NNG' and i + 1 < len(tagged):
             next_word, next_tag = tagged[i + 1]
             if next_tag == 'XSN':
-                grouped.append(word + next_word)
+                grouped.append((word + next_word, 'NNG'))
                 i += 2
                 continue
 
@@ -81,7 +77,7 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
             and tagged[i + 1][1] == 'XSV'
             and tagged[i + 2][1] == 'EF'
         ):
-            grouped.append(word + tagged[i + 1][0] + tagged[i + 2][0])
+            grouped.append((word + tagged[i + 1][0] + tagged[i + 2][0], 'VV'))
             i += 3
             continue
 
@@ -93,68 +89,12 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[str]:
             and tagged[i + 1][1] == 'XSA'
             and tagged[i + 2][1] == 'EF'
         ):
-            grouped.append(word + tagged[i + 1][0] + tagged[i + 2][0])
+            grouped.append((word + tagged[i + 1][0] + tagged[i + 2][0], 'VA'))
             i += 3
             continue
 
         # Default case
-        grouped.append(word)
+        grouped.append((word, tag))
         i += 1
 
     return grouped
-
-def filter_allowed_tokens(tagged: list[tuple[str, str]], placeholder_map: dict) -> list[str]:
-    """
-    Filters morphemes to include only meaningful content tokens,
-    while restoring any placeholder-replaced 사자성어.
-    """
-    allowed_pos = {
-        'NNG', 'NNP', 'NNB', 'NR',      # Nouns
-        'VV', 'VA', 'VX', 'VCN', 'VCP', # Verbs, adjectives, auxiliary, copula
-        'MAG', 'MAJ',                   # Adverbs
-        'XR',                           # Roots
-        'SN', 'SL', 'SH',               # Numbers, foreign, sino
-        'MM'                            # Determiner
-    }
-
-    grouped = group_komoran_tokens(tagged)
-    final_tokens = []
-
-    for token in grouped:
-        if token in placeholder_map:
-            final_tokens.append(placeholder_map[token])
-        else:
-            # Re-tag individual token to get its POS
-            tagged_token = komoran.pos(token)
-            if tagged_token and tagged_token[0][1] in allowed_pos:
-                final_tokens.append(token)
-
-    return final_tokens
-
-def filter_korean_tokens(text: str) -> list[str]:
-    """
-    Full pipeline to:
-    - Preprocess the text (suffix removal + non-Hangul removal)
-    - Replace 사자성어 with placeholders
-    - Group morphologically relevant constructions
-    - Filter tokens by POS
-
-    Returns a list of surface form words
-    """
-    preprocessed_text = preprocess_text(text)
-    text_w_placeholder, sajaseongeo_placeholder_map = replace_sajaseongeo_with_placeholders(preprocessed_text)
-    tagged_text = komoran.pos(text_w_placeholder)
-    return filter_allowed_tokens(tagged_text, sajaseongeo_placeholder_map)
-
-def korean_to_hanja(input_query: str) -> tuple[list, list]:
-    """
-    Main entry point: takes Korean text, extracts key content words,
-    and generates hanja-based information using the hanja_batcher.
-    
-    Returns a tuple: (hanja_enriched_output, filtered_tokens)
-    """
-    filtered_tokens = filter_korean_tokens(input_query)
-    return generate_hanja_for_words(filtered_tokens)
-
-# if __name__ == "__main__":
-#     print(filter_korean_tokens("요즘은 마음과 몸을 편안하게 하며 유유자적한 일상을 보내고 있는 것 같아"))

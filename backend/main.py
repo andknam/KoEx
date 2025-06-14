@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 
 from backend.gpt.korean_analyzer import analyze_korean_sentence
 from backend.romanizer import romanize
-from backend.hanja_utils.utils import korean_to_hanja
+from backend.hanja_utils.hanja_pipeline import korean_to_hanja
 from backend.vector import search_api
 
 app = FastAPI()
