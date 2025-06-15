@@ -61,7 +61,7 @@ export default function Tabs() {
             }
             placeholder={
               mode === 'analyze'
-                ? 'Enter Korean word or phrase: 한국어를 오늘부터 배우기로 다짐했다!'
+                ? 'Enter Korean word or phrase: 오늘부터 한국어를 배우기 시작하기로 결심했다!'
                 : 'Enter a question: Why did he decide to start a brand?'
             }
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"

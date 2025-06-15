@@ -2,22 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Override default Tailwind body font stack */
 body {
-    font-family:
-        Helvetica,
-        "Apple SD Gothic Neo",  /* macOS Korean */
-        "Noto Sans KR",         /* Google Korean fallback */
-        "Noto Sans CJK KR",     /* Broader Korean fallback */
-        "Noto Sans SC",         /* Simplified Chinese */
-        "Noto Sans TC",         /* Traditional Chinese */
-        Arial,
-        sans-serif;
-    }
+  font-family:
+    Helvetica,
+    "Apple SD Gothic Neo",  /* macOS Korean */
+    "Noto Sans KR",         /* Google Korean fallback */
+    "Noto Sans CJK KR",     /* Broader Korean fallback */
+    "Noto Sans SC",         /* Simplified Chinese */
+    "Noto Sans TC",         /* Traditional Chinese */
+    Arial,
+    sans-serif;
+}
 
+/* Utility class to hide scrollbars */
 .scrollbar-none::-webkit-scrollbar {
-    display: none;
-    }
-    .scrollbar-none {
-    scrollbar-width: none;      /* Firefox */
-    -ms-overflow-style: none;   /* IE 10+ */
-    }
+  display: none;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE 10+ */
+}
