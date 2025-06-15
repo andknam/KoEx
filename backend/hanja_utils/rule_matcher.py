@@ -42,8 +42,6 @@ def merge_aux_grammar_chunks(tagged: list[tuple[str, str]]) -> list[tuple[str, s
     while i < len(tagged):
         matched = None
 
-        print(f"\nChecking at position {i}: {tagged[i:i+5]}")
-
         for rule in GRAMMAR_RULES:
             result = match_rule(tagged, i, rule)
             if result:

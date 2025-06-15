@@ -29,4 +29,7 @@
 - [ ] Word saving + graph visualization (shared Hanja network)
 - [ ] Voice gloss playback
 - [ ] Support for stroke order animations
-- [ ] Auxiliary grammar check for polite endings
+- [ ] Handle honorifics and negation patterns in verbs
+- [ ] Support more complex grammar: conjunctions, quotatives, and adnominal forms (e.g., -지만, -다고 하다, -는 것)
+- [ ] Expand idiom + fixed expression detection (e.g., 사자성어, compound verbs like 말을 걸다)
+- [ ] Improve parsing for numeral + counter units

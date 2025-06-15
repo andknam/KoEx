@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(search_api.router)
+app.include_router(search_api.router, prefix="/api")
 
 async def analyze_generator(input_text: str):
     yield "event: progress\ndata: Starting analysis...\n\n"

@@ -100,7 +100,7 @@ export default function ScrollableWordCards({ words }: { words: any }) {
         {/* Scrollable Word Cards */}
         <div
             ref={scrollRef}
-            className="flex overflow-x-auto gap-4 p-2 scrollbar-hidden scroll-smooth snap-x snap-mandatory"
+            className="flex overflow-x-auto gap-4 p-2 scroll-smooth snap-x snap-mandatory scrollbar-none"
         >
             {words.map((word, i) => (
             <div
