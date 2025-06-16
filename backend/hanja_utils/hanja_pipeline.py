@@ -1,80 +1,66 @@
-# backend/hanja_utils/hanja_pipeline.py
-
 import os
 import re
-import yaml
 from konlpy.tag import Okt, Komoran
 
 from backend.gpt.hanja_batcher import generate_hanja_for_words
-from backend.hanja_utils.rule_matcher import merge_aux_grammar_chunks
 from backend.hanja_utils.tokenizer import (
     strip_suffixes,
     replace_sajaseongeo_with_placeholders,
-    group_komoran_tokens,
 )
+from backend.hanja_utils.filters import filter_allowed_tokens
 
 okt = Okt()
-
 current_dir = os.path.dirname(__file__)
 user_dic_path = os.path.join(current_dir, "user.dic")
 komoran = Komoran(userdic=user_dic_path)
 
-particle_tags = {'JKS', 'JKC', 'JKO', 'JKB', 'JKG', 'JX', 'JC'}
 
 def preprocess_text(text: str) -> str:
     text = strip_suffixes(text)
     return re.sub(r"[^\uac00-\ud7a3\s]", "", text)
 
-def filter_allowed_tokens(tagged: list[tuple[str, str]], placeholder_map: dict) -> list[str]:
-    allowed_pos = {
-        'NNG', 'NNP', 'NNB', 'NR',
-        'VV', 'VA', 'VX', 'VCN', 'VCP',
-        'MAG', 'MAJ', 'XR', 'SN', 'SL', 'SH', 'MM'
-    }
-    grouped = merge_aux_grammar_chunks(tagged)
-    grouped = group_komoran_tokens(grouped)
-    final_tokens = []
 
-    for token, tag in grouped:
-        if token in placeholder_map:
-            final_tokens.append(placeholder_map[token])
-        elif tag in allowed_pos:
-            final_tokens.append(token)
-        else:
-            tagged_token = komoran.pos(token)
-            if tagged_token and tagged_token[0][1] in allowed_pos:
-                final_tokens.append(token)
-
-    return final_tokens
-
-def filter_korean_tokens(text: str) -> list[str]:
+def filter_korean_tokens(text: str) -> list[tuple[str, str]]:
     preprocessed_text = preprocess_text(text)
     text_w_placeholder, placeholder_map = replace_sajaseongeo_with_placeholders(preprocessed_text)
     tagged_text = komoran.pos(text_w_placeholder)
-
     return filter_allowed_tokens(tagged_text, placeholder_map)
 
-def korean_to_hanja(input_query: str) -> tuple[list, list]:
+
+def korean_to_hanja(input_query: str) -> list[dict]:
+    """
+    Extracts meaningful Korean words from the input, filters them by part of speech,
+    and returns enriched Hanja information using GPT.
+    """
     filtered_tokens = filter_korean_tokens(input_query)
 
-    return generate_hanja_for_words(filtered_tokens)
+    # Only allow base content words (e.g., 실천, 계획), not long fused forms
+    content_tags = {'NNG', 'NNP', 'VV', 'VA', 'VCN', 'VX'}
+    seen = set()
+    tokens_for_hanja = []
 
-def test_merge(input_tokens: list[tuple[str, str]], expected: list[str]):
-    result = merge_aux_grammar_chunks(input_tokens)
-    result_tokens = [token for token, _ in result]
-    assert result_tokens == expected, f"\nExpected: {expected}\nGot:      {result_tokens}"
-    print(f"✅ Passed: {' + '.join([t[0] for t in input_tokens])} → {' + '.join(expected)}")
+    for word, tag in filtered_tokens:
+        if tag in content_tags and len(word) <= 4 and word not in seen:
+            tokens_for_hanja.append(word)
+            seen.add(word)
 
-if __name__ == "__main__":
-    print("Running grammar chunking tests...\n")
+    return generate_hanja_for_words(tokens_for_hanja)
 
-    test_merge([('하', 'VV'), ('겠', 'EP'), ('다', 'EF')], ['하겠다'])
-    test_merge([('나가', 'VV'), ('아야', 'EC'), ('하', 'VX'), ('겠', 'EP'), ('다', 'EF')], ['나가야겠다'])
-    test_merge([('가', 'VV'), ('려고', 'EC'), ('하', 'VV'), ('다', 'EF')], ['가려고하다'])
-    test_merge([('먹', 'VV'), ('고', 'EC'), ('싶', 'VA'), ('다', 'EF')], ['먹고싶다'])
-    test_merge([('하', 'VV'), ('ㄹ', 'ETM'), ('수', 'NNG'), ('있', 'VV'), ('다', 'EF')], ['할수있다'])
-    test_merge([('하', 'VV'), ('지', 'EC'), ('않', 'VX'), ('다', 'EF')], ['하지않다'])
-    test_merge([('하', 'VV'), ('고', 'EC'), ('있', 'VX'), ('다', 'EF')], ['하고있다'])
-    test_merge([('먹', 'VV'), ('었', 'EP'), ('다', 'EF')], ['먹었다'])
 
-    print("\n✅ All tests passed.")
+def tag_derived_forms(entries: list[dict]) -> list[dict]:
+    """
+    Adds 'is_derived': True to entries whose Korean form is a longer derived variant
+    of a previously seen shorter word (e.g., '실천하고' if '실천' already exists).
+    """
+    seen = set()
+    result = []
+
+    for entry in sorted(entries, key=lambda x: len(x["korean"])):
+        word = entry["korean"]
+        is_derived = any(existing in word for existing in seen)
+        entry["is_derived"] = is_derived
+        result.append(entry)
+        if not is_derived:
+            seen.add(word)
+
+    return result

@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 
 from backend.gpt.korean_analyzer import analyze_korean_sentence
 from backend.romanizer import romanize
-from backend.hanja_utils.hanja_pipeline import korean_to_hanja
+from backend.hanja_utils.hanja_pipeline import korean_to_hanja, tag_derived_forms
 from backend.vector import search_api
 
 app = FastAPI()
@@ -24,16 +24,14 @@ app.add_middleware(
 app.include_router(search_api.router, prefix="/api")
 
 async def analyze_generator(input_text: str):
-    yield "event: progress\ndata: Starting analysis...\n\n"
-
     # Step 1: Extract Hanja information
-    yield "event: progress\ndata: Fetching Korean words...\n\n"
-    hanja_results = korean_to_hanja(input_text)
+    yield "event: progress\ndata: Extracting meaningful Korean words and Hanja matches...\n\n"
+    hanja_results = tag_derived_forms(korean_to_hanja(input_text))
     await asyncio.sleep(0.5) 
 
     # Step 2: POS tagging & glossing
-    yield "event: progress\ndata: Analyzing sentence structure...\n\n"
-    korean_words = [entry["korean"] for entry in hanja_results]
+    yield "event: progress\ndata: Chunking grammar patterns and generating glosses...\n\n"
+    korean_words = [entry["korean"] for entry in hanja_results if not entry["is_derived"]]
     sentence_gloss, korean_word_info = analyze_korean_sentence(input_text, korean_words)
     await asyncio.sleep(0.5)
 

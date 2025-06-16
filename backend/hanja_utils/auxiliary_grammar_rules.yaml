@@ -1,35 +1,35 @@
+# Future intent: 하겠다, 먹겠다
 - name: intent_future
+  group_as: aux_intent_future
+  example: 먹겠어
   pattern:
     - tag: VV
     - tag: EP
     - tag: EF
 
-- name: necessity_intent
+# Past tense: 끝났다, 봤다
+- name: past
+  group_as: verb_past
+  example: 끝났어
   pattern:
     - tag: VV
-    - tag: EC
-    - tag: VX
     - tag: EP
     - tag: EF
 
-- name: try_to_do
+# Past contrast: 끝났지만
+- name: verb_past_contrast
+  group_as: verb_past_conj
+  example: 끝났지만
   pattern:
     - tag: VV
-    - token: 려고
+    - tag: EP
+    - token: 지만
       tag: EC
-    - tag: VV
-    - tag: EF
 
-- name: want_to
-  pattern:
-    - tag: VV
-    - token: 고
-      tag: EC
-    - token: 싶
-      tag: VA
-    - tag: EF
-
+# Ability: 할 수 있다
 - name: can_do
+  group_as: aux_ability
+  example: 할 수 있어
   pattern:
     - tag: VV
     - tag: ETM
@@ -38,31 +38,69 @@
     - tag: VV
     - tag: EF
 
-- name: negation
+# Wanting to do something: 하고 싶다 (unmerged)
+- name: want_to
+  group_as: aux_want
+  example: 하고 싶어
   pattern:
     - tag: VV
-    - token: 지
+    - token: 고
       tag: EC
-    - token: 않
-      tag: VX
+    - token: 싶
+      tag: VA
     - tag: EF
 
-- name: negation_adverb
+# Pre-merged: 하고싶다
+- name: want_to_merged
+  group_as: aux_want
+  example: 하고싶다
   pattern:
-    - token: 안
-      tag: MAG
+    - tag: VV
+    - tag: VA
+
+# Simpler fallback for 싶다 when 고 is dropped (rare but useful)
+- name: want_simple
+  group_as: aux_want_simple
+  example: 싶다
+  pattern:
+    - token: 싶
+      tag: VA
+    - tag: EF
+
+# Trying to do something: 하려고 하다
+- name: try_to_do
+  group_as: aux_try
+  example: 공부하려고 해
+  pattern:
+    - tag: VV
+    - token: 려고
+      tag: EC
     - tag: VV
     - tag: EF
 
-- name: negation_adverb_past
+# Pre-merged: 공부하려고하다
+- name: try_to_do_merged
+  group_as: aux_try
+  example: 공부하려고하다
   pattern:
-    - token: 안
-      tag: MAG
     - tag: VV
+    - tag: VV
+
+# Necessity or obligation: 나가야 하겠다
+- name: necessity_intent
+  group_as: aux_necessity_intent
+  example: 나가야 하겠다
+  pattern:
+    - tag: VV
+    - tag: EC
+    - tag: VX
     - tag: EP
     - tag: EF
 
+# Progressive: 공부하고 있다
 - name: progressive
+  group_as: aux_progressive
+  example: 공부하고 있어요
   pattern:
     - tag: VV
     - token: 고
@@ -71,8 +109,80 @@
       tag: VX
     - tag: EF
 
-- name: past
+# Pre-merged: 하고있다
+- name: progressive_merged
+  group_as: aux_progressive
+  example: 하고있다
   pattern:
+    - tag: VV
+    - tag: VX
+
+# General verb sequence: 하고, 시키고
+- name: verb_then
+  group_as: aux_then
+  example: 시키고
+  pattern:
+    - tag: VV
+    - token: 고
+      tag: EC
+
+# Adverbial negation: 안 가요
+- name: negation_adverb
+  group_as: aux_negation_adverb
+  example: 안 가요
+  pattern:
+    - token: 안
+      tag: MAG
+    - tag: VV
+    - tag: EF
+
+# Past tense adverbial negation: 안 갔어요
+- name: negation_adverb_past
+  group_as: aux_negation_adverb_past
+  example: 안 갔어요
+  pattern:
+    - token: 안
+      tag: MAG
     - tag: VV
     - tag: EP
     - tag: EF
+
+# Phrase-based negation: 가지 않아요
+- name: negation
+  group_as: aux_negation
+  example: 가지 않아요
+  pattern:
+    - tag: VV
+    - token: 지
+      tag: EC
+    - token: 않
+      tag: VX
+    - tag: EF
+
+# Pre-merged negation: 하지않다
+- name: negation_merged
+  group_as: aux_negation
+  example: 하지않다
+  pattern:
+    - tag: VV
+    - tag: VX
+
+# Noun-verb-based try: 공부하려고 하다
+- name: noun_verb_try_to_do
+  group_as: aux_try
+  example: 공부하려고 하다
+  pattern:
+    - tag: NNG
+    - tag: XSV
+    - token: 려고
+      tag: EC
+    - tag: VV
+    - tag: EF
+
+- name: can_do_merged
+  group_as: aux_ability
+  example: 할수있다
+  pattern:
+    - tag: VV
+    - tag: NNG
+    - tag: VV
