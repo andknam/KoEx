@@ -2,8 +2,9 @@
 
 *Korean Explainer* is an AI-powered tool for Korean language learning.
 
-[![KoEx Demo](https://img.youtube.com/vi/daTirelQYY8/0.jpg)](https://youtube.com/shorts/daTirelQYY8?feature=share)
-
+<p align="center">
+  <video src="docs/koex-language-analysis.mp4" autoplay loop muted playsinline style="width: 50%;"></video>
+</p>
 
 ## Features
 
