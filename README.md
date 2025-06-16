@@ -7,12 +7,17 @@
 ## Features
 
 ### Language Analysis
+- Custom interlinear romanization with morpheme-level separation
+- Extraction of meaningful Korean words with part-of-speech tags, Korean definitions, and example sentences
 - Korean-to-Hanja conversion
-- Per-character annotations: Hanja, Pinyin, Korean gloss with 훈음, English meaning
-- Custom inline romanization and glossing
-- Smart tokenization via morpheme grouping and idiom preservation
-- Auxiliary grammar checking (i.e. 하고 싶다, 할 수 있다)
-- Stopword removal
+  - Per-Hanja annotations: Pinyin, 훈음, and English gloss
+- Smart tokenization via custom rule-based chunking
+  - Idiom (사자성어) and fixed expression preservation
+  - Auxiliary grammar grouping (i.e. 하고 싶다, 할 수 있다, 나가야 하다)
+  - Morphological recombination (i.e. 변화/NNG + 하/XSV → 변화하다)
+  - Contraction normalization (i.e. 봤어요 → 보다 + 았어요)
+  - Stopword removal
+  - YAML-configured grammar rule engine for scalability and easy rule expansion
 
 ### Search
 - Semantic search across Korean YouTube transcripts and documents
@@ -21,17 +26,17 @@
 ## Roadmap
 
 ### 🚧 In Progress
+- [x] Expand idiom + fixed expression detection
+- [x] Handle negation patterns in verbs (i.e. -지 않다, -지 못하다) 
 - [ ] Semantic + vector search (OpenAI + Qdrant)
 - [ ] YouTube transcript extraction and chunking
-- [ ] Frontend UI for results
 
 ### 🧩 Planned
 - [ ] YouTube player with live analysis
 - [ ] Full sentence contextual explanations (GPT-powered)
 - [ ] Word saving + graph visualization (shared Hanja network)
-- [ ] Voice gloss playback
+- [ ] Voice playback of glossed sentences
 - [ ] Support for stroke order animations
-- [ ] Handle honorifics and negation patterns in verbs
-- [ ] Support more complex grammar: conjunctions, quotatives, and adnominal forms (e.g., -지만, -다고 하다, -는 것)
-- [ ] Expand idiom + fixed expression detection (e.g., 사자성어, compound verbs like 말을 걸다)
+- [ ] Handle honorifics
+- [ ] Support more complex grammar: conjunctions, quotatives, and adnominal forms (i.e. -지만, -다고 하다, -는 것)
 - [ ] Improve parsing for numeral + counter units
