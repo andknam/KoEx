@@ -1,12 +1,9 @@
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams, PointStruct, Filter
-from typing import List
 import hashlib
-import os
 
-COLLECTION_NAME = "gajiroc_interview_chunks"
-VECTOR_DIM = 1536
-QDRANT_PATH = os.getenv("QDRANT_PATH", "qdrant_storage")
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, VectorParams, PointStruct
+from backend.vector.constants import COLLECTION_NAME, VECTOR_DIM, QDRANT_PATH
+from typing import List
 
 client = QdrantClient(path=QDRANT_PATH)
 
@@ -17,7 +14,7 @@ def ensure_collection():
             vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE)
         )
 
-def embed_and_upsert(chunks: List[dict], embed_fn):
+def embed_and_upsert(chunks: List[dict], embed_fn, source: str):
     ensure_collection()
     points = []
     for chunk in chunks:
@@ -29,7 +26,8 @@ def embed_and_upsert(chunks: List[dict], embed_fn):
             payload={
                 "text": chunk["text"],
                 "start": chunk["start"],
-                "end": chunk["end"]
+                "end": chunk["end"],
+                "source": source
             }
         ))
     client.upsert(collection_name=COLLECTION_NAME, points=points)

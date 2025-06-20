@@ -2,7 +2,8 @@ import re
 from pathlib import Path
 import json
 
-CHAR_LIMIT = 80  # Max combined character length for merged chunks
+CHAR_LIMIT = 200  # Max combined character length for merged chunks
+TOKEN_LIMIT = 300  # Approximate token threshold per chunk
 
 # === Transcript Parsing ===
 def clean_vtt_text(raw_text):
@@ -49,19 +50,22 @@ def merge_chunks(segments):
     for seg in segments:
         seg_text = seg["text"].strip()
 
+        if len(seg_text) < 5:
+            continue
+
         if not curr:
             curr = seg.copy()
             continue
 
         combined_text = f"{curr['text']} {seg_text}".strip()
 
-        if len(combined_text) > CHAR_LIMIT:
+        if (len(combined_text) > CHAR_LIMIT or count_tokens(combined_text) > TOKEN_LIMIT) and ends_in_sentence(curr["text"]):
             merged.append(curr)
             curr = seg.copy()
         else:
-            if seg_text not in curr["text"]:
-                curr["end"] = seg["end"]
-                curr["text"] = combined_text
+            seg_text = strip_overlap(curr["text"], seg_text)
+            curr["end"] = seg["end"]
+            curr["text"] = f"{curr['text']} {seg_text}".strip()
 
     if curr:
         merged.append(curr)
@@ -70,6 +74,23 @@ def merge_chunks(segments):
         m["text"] = polish_text(m["text"])
 
     return merged
+
+# === Overlap Handling ===
+def strip_overlap(prev_text, next_text, window=5):
+    prev_words = prev_text.split()
+    next_words = next_text.split()
+    for i in range(window, 0, -1):
+        if prev_words[-i:] == next_words[:i]:
+            return ' '.join(next_words[i:])
+    return next_text
+
+# === Sentence-Aware Splitting ===
+def ends_in_sentence(text):
+    return text.endswith(("다", "요", "니다", ".", "!", "?"))
+
+# === Token Estimation ===
+def count_tokens(text):
+    return len(text.split())
 
 # === Text Cleaning ===
 def remove_bracket_tags(text):
@@ -111,17 +132,5 @@ def polish_text(text):
     text = remove_bracket_tags(text)
     text = remove_duplicate_phrases_rough(text)
     text = remove_redundant_phrases(text)
+    
     return text.strip()
-
-if __name__ == "__main__":
-    vtt_file = Path("transcripts/youtube/raw/gajiroc_interview.ko.vtt")
-    chunks = parse_vtt_file(vtt_file)
-
-    for chunk in chunks[:5]:
-        print(f"[{chunk['start']} → {chunk['end']}] {chunk['text']}")
-
-    output_path = Path("transcripts/youtube/parsed/video_chunks.json")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(chunks, f, ensure_ascii=False, indent=2)
