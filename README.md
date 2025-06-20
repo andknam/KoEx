@@ -23,7 +23,7 @@
 
 ![Semantic Search Pipeline](./docs/semantic-search-pipeline.png)
 
-- Semantic search across Korean YouTube transcripts and documents
+- Semantic search across Korean YouTube transcripts
 - Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
 
 ## Roadmap
@@ -31,8 +31,9 @@
 ### 🚧 In Progress
 - [x] Expand idiom + fixed expression detection
 - [x] Handle negation patterns in verbs (i.e. -지 않다, -지 못하다) 
-- [ ] Semantic + vector search (OpenAI + Qdrant)
-- [ ] YouTube transcript extraction and chunking
+- [x] Semantic + vector search (OpenAI + Qdrant)
+- [x] YouTube transcript extraction and chunking
+- [ ] Update semantic search UI with richer metadata
 
 ### 🧩 Planned
 - [ ] YouTube player with live analysis
