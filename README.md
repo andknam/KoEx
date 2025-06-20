@@ -20,6 +20,9 @@
   - YAML-configured grammar rule engine for scalability and easy rule expansion
 
 ### Search
+
+![Semantic Search Pipeline](./docs/semantic-search-pipeline.png)
+
 - Semantic search across Korean YouTube transcripts and documents
 - Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
 
