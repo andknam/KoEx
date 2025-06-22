@@ -2,6 +2,8 @@ from konlpy.tag import Komoran
 import os
 import re
 
+from backend.hanja_utils.morph_utils import contract_korean
+
 current_dir = os.path.dirname(__file__)
 user_dic_path = os.path.join(current_dir, "user.dic")
 komoran = Komoran(userdic=user_dic_path)
@@ -92,8 +94,9 @@ def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[tuple[str, str]]
         # VV + ETM (e.g., 하 + ㄹ → 할)
         if tag == 'VV' and i + 1 < len(tagged):
             next_word, next_tag = tagged[i + 1]
-            if next_tag == 'ETM' and next_word == 'ㄹ':
-                grouped.append(('할', 'VV'))  # contract
+            if next_tag == 'ETM':
+                combined = contract_korean([word, next_word])
+                grouped.append((combined, 'VV'))
                 i += 2
                 continue
 
