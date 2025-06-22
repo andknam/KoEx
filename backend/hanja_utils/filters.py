@@ -35,11 +35,11 @@ def filter_allowed_tokens(tagged: list[tuple[str, str]], placeholder_map: dict) 
     for token, tag in grouped:
         if token in placeholder_map:
             final_tokens.append((placeholder_map[token], 'NNP'))
-        elif tag in ALLOWED_POS and token not in STOPWORDS:
-            final_tokens.append((token, tag))
         # dont re-tag placeholders
         elif token.startswith("＠＠"):
             continue
+        elif tag in ALLOWED_POS and token not in STOPWORDS:
+            final_tokens.append((token, tag))
         elif token not in STOPWORDS:
             tagged_token = komoran.pos(token)
             # nothing valid returned
