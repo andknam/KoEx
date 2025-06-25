@@ -26,6 +26,16 @@
 - Semantic search across Korean YouTube transcripts
 - Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
 
+
+### YouTube Player 
+
+- YouTube player with live transcript sync
+  - Highlights current subtitle during playback
+
+- Interactive analysis (coming soon):
+  - Click on any transcript chunk to run full KoEx language analysis
+  - Live display of grammar breakdown, hanja annotations, and glossing
+
 ## Roadmap
 
 ### 🚧 In Progress
