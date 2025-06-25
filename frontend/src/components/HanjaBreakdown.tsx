@@ -1,8 +1,4 @@
-export default function HanjaBreakdown({
-  characters,
-}: {
-  characters: any;
-}) {
+export default function HanjaBreakdown({ characters }: { characters: any }) {
   return (
     <div>
       <ul className="space-y-2">

@@ -10,6 +10,11 @@ def clean_vtt_text(raw_text):
     # Remove inline timestamp and <c> tags
     return re.sub(r"<\d{2}:\d{2}:\d{2}\.\d{3}><c>|</c>", "", raw_text)
 
+def time_str_to_seconds(s: str) -> float:
+    h, m, rest = s.split(":")
+    sec, ms = rest.split(".")
+    return int(h) * 3600 + int(m) * 60 + int(sec) + int(ms) / 1000
+
 def parse_vtt_file(vtt_path):
     with open(vtt_path, encoding='utf-8') as f:
         lines = f.readlines()
@@ -39,6 +44,8 @@ def parse_vtt_file(vtt_path):
 
     for seg in raw_segments:
         seg["text"] = seg["text"].strip()
+        seg["start"] = time_str_to_seconds(seg["start"])
+        seg["end"] = time_str_to_seconds(seg["end"])
 
     return merge_chunks(raw_segments)
 

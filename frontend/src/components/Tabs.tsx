@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import LanguageAnalyzer from './LanguageAnalyzer';
 import SemanticSearch from './SemanticSearch';
+import YouTubeTranscript from './YouTubeTranscript';
 
 export default function Tabs() {
-  const [mode, setMode] = useState<'analyze' | 'search'>('analyze');
+  const [mode, setMode] = useState<'analyze' | 'search' | 'youtube'>('analyze');
   const [analyzeQuery, setAnalyzeQuery] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedAnalyzeQuery, setSubmittedAnalyzeQuery] = useState('');
@@ -11,6 +12,8 @@ export default function Tabs() {
   const [searchTrigger, setSearchTrigger] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [submittedYoutubeUrl, setSubmittedYoutubeUrl] = useState('');
 
   const handleAnalyze = () => {
     setIsAnalyzing(true);
@@ -26,7 +29,6 @@ export default function Tabs() {
   return (
     <div className="w-full flex flex-col items-start">
       <div className="w-full max-w-3xl space-y-4">
-        {/* Tab Buttons */}
         <div className="flex space-x-2">
           <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
@@ -48,21 +50,40 @@ export default function Tabs() {
           >
             Semantic Search
           </button>
+          <button
+            className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+              mode === 'youtube'
+                ? 'bg-black text-white'
+                : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+            }`}
+            onClick={() => setMode('youtube')}
+          >
+            YouTube Player
+          </button>
         </div>
 
         {/* Input + Button */}
         <div className="flex space-x-2 w-full">
           <input
-            value={mode === 'analyze' ? analyzeQuery : searchQuery}
-            onChange={(e) =>
+            value={
               mode === 'analyze'
-                ? setAnalyzeQuery(e.target.value)
-                : setSearchQuery(e.target.value)
+                ? analyzeQuery
+                : mode === 'search'
+                  ? searchQuery
+                  : youtubeUrl
             }
+            onChange={(e) => {
+              const val = e.target.value;
+              if (mode === 'analyze') setAnalyzeQuery(val);
+              else if (mode === 'search') setSearchQuery(val);
+              else setYoutubeUrl(val);
+            }}
             placeholder={
               mode === 'analyze'
                 ? 'Enter Korean word or phrase: 오늘부터 한국어를 배우기 시작하기로 결심했다!'
-                : 'Enter a question: Why did he decide to start a brand?'
+                : mode === 'search'
+                  ? 'Enter a question: Why did he decide to start a brand?'
+                  : 'Paste YouTube URL'
             }
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
             type="text"
@@ -89,6 +110,14 @@ export default function Tabs() {
               Search
             </button>
           )}
+          {mode === 'youtube' && (
+            <button
+              onClick={() => setSubmittedYoutubeUrl(youtubeUrl.trim())}
+              className="px-4 py-2 rounded-md text-sm bg-black text-white"
+            >
+              Load
+            </button>
+          )}
         </div>
 
         {/* Results (keep both components mounted) */}
@@ -105,6 +134,9 @@ export default function Tabs() {
               trigger={searchTrigger}
               onDone={() => setIsSearching(false)}
             />
+          </div>
+          <div style={{ display: mode === 'youtube' ? 'block' : 'none' }}>
+            <YouTubeTranscript url={submittedYoutubeUrl} />
           </div>
         </div>
       </div>

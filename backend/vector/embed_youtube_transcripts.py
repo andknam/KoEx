@@ -5,7 +5,7 @@ from backend.vector.qdrant_wrapper import embed_and_upsert
 from backend.gpt.openai_client import OpenAIClient
 from backend.vector.constants import VECTOR_DIM
 
-TRANSCRIPTS_DIR = Path("transcripts/youtube/parsed")
+TRANSCRIPTS_DIR = Path("backend/transcripts/youtube/parsed")
 openai_client = OpenAIClient.get_client()
 
 def get_embedding(text: str) -> list[float]:

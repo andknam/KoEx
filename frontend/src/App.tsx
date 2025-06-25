@@ -10,8 +10,10 @@ export default function App() {
             Korean Explainer: analyze Korean, search across YouTube
           </p>
           <p className="text-xs italic text-gray-400 pl-0.5">
-            Powered by <code className="text-[11px] font-mono text-gray-500">GPT</code>,{' '}
-            <code className="text-[11px] font-mono text-gray-500">Qdrant</code>, and custom grammar + romanization rules
+            Powered by{' '}
+            <code className="text-[11px] font-mono text-gray-500">GPT</code>,{' '}
+            <code className="text-[11px] font-mono text-gray-500">Qdrant</code>,
+            and custom grammar + romanization rules
           </p>
         </header>
 

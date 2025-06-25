@@ -9,6 +9,7 @@ from backend.gpt.korean_analyzer import analyze_korean_sentence
 from backend.romanizer import romanize
 from backend.hanja_utils.hanja_pipeline import korean_to_hanja, tag_derived_forms
 from backend.vector import search_api
+from backend.transcripts import transcript_api 
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(search_api.router, prefix="/api")
+app.include_router(transcript_api.router)
 
 async def analyze_generator(input_text: str):
     # Step 1: Extract Hanja information

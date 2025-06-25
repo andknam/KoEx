@@ -6,12 +6,12 @@
 body {
   font-family:
     Helvetica,
-    "Apple SD Gothic Neo",  /* macOS Korean */
-    "Noto Sans KR",         /* Google Korean fallback */
-    "Noto Sans CJK KR",     /* Broader Korean fallback */
-    "Noto Sans SC",         /* Simplified Chinese */
-    "Noto Sans TC",         /* Traditional Chinese */
-    Arial,
+    'Apple SD Gothic Neo',
+    /* macOS Korean */ 'Noto Sans KR',
+    /* Google Korean fallback */ 'Noto Sans CJK KR',
+    /* Broader Korean fallback */ 'Noto Sans SC',
+    /* Simplified Chinese */ 'Noto Sans TC',
+    /* Traditional Chinese */ Arial,
     sans-serif;
 }
 
@@ -21,6 +21,6 @@ body {
 }
 
 .scrollbar-none {
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE 10+ */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
 }
