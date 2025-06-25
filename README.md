@@ -33,10 +33,10 @@
 - [x] Handle negation patterns in verbs (i.e. -지 않다, -지 못하다) 
 - [x] Semantic + vector search (OpenAI + Qdrant)
 - [x] YouTube transcript extraction and chunking
+- [x] YouTube player with live analysis
 - [ ] Update semantic search UI with richer metadata
 
 ### 🧩 Planned
-- [ ] YouTube player with live analysis
 - [ ] Full sentence contextual explanations (GPT-powered)
 - [ ] Word saving + graph visualization (shared Hanja network)
 - [ ] Voice playback of glossed sentences
