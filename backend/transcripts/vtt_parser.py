@@ -1,9 +1,9 @@
 import re
-from pathlib import Path
-import json
 
-CHAR_LIMIT = 200  # Max combined character length for merged chunks
-TOKEN_LIMIT = 300  # Approximate token threshold per chunk
+SOFT_CHAR_LIMIT = 100  # Max combined character length for merged chunks
+HARD_CHAR_LIMIT = 160
+SOFT_TOKEN_LIMIT = 35  # Approximate token threshold per chunk
+HARD_TOKEN_LIMIT = 50
 
 # === Transcript Parsing ===
 def clean_vtt_text(raw_text):
@@ -65,12 +65,19 @@ def merge_chunks(segments):
             continue
 
         combined_text = f"{curr['text']} {seg_text}".strip()
+        combined_token_count = count_tokens(combined_text)
 
-        if (len(combined_text) > CHAR_LIMIT or count_tokens(combined_text) > TOKEN_LIMIT) and ends_in_sentence(curr["text"]):
+        if (
+            (len(combined_text) > SOFT_CHAR_LIMIT or combined_token_count > SOFT_TOKEN_LIMIT)
+            and ends_in_sentence(curr["text"])
+        ) or (
+            len(combined_text) > HARD_CHAR_LIMIT or combined_token_count > HARD_TOKEN_LIMIT
+        ):
             merged.append(curr)
             curr = seg.copy()
         else:
             seg_text = strip_overlap(curr["text"], seg_text)
+            seg_text = strip_fuzzy_overlap(curr["text"], seg_text)
             curr["end"] = seg["end"]
             curr["text"] = f"{curr['text']} {seg_text}".strip()
 
@@ -80,7 +87,8 @@ def merge_chunks(segments):
     for m in merged:
         m["text"] = polish_text(m["text"])
 
-    return merged
+    # second pass for intra-check repetitions + repeated word/phrases across chunk boundary
+    return clean_chunk_overlaps(merged)
 
 # === Overlap Handling ===
 def strip_overlap(prev_text, next_text, window=5):
@@ -90,6 +98,33 @@ def strip_overlap(prev_text, next_text, window=5):
         if prev_words[-i:] == next_words[:i]:
             return ' '.join(next_words[i:])
     return next_text
+
+def strip_fuzzy_overlap(prev: str, curr: str, max_len: int = 50) -> str:
+    """
+    Strips the longest overlapping prefix in `curr` that matches the suffix in `prev`.
+    Operates on characters for fuzzy Korean alignment.
+    """
+    for i in range(min(len(prev), len(curr), max_len), 10, -1):
+        if prev[-i:] == curr[:i]:
+            return curr[i:].strip()
+    return curr
+
+# window = max # of consecutive repeated words to check across word boundary
+def clean_chunk_overlaps(chunks, max_overlap_len=12):
+    cleaned = [chunks[0]]
+    for i in range(1, len(chunks)):
+        prev = cleaned[-1]["text"]
+        curr = chunks[i]["text"]
+
+        for w in range(max_overlap_len, 2, -1):
+            prev_suffix = ' '.join(prev.split()[-w:])
+            if prev_suffix in curr and curr.startswith(prev_suffix):
+                curr = curr[len(prev_suffix):].strip()
+                break
+
+        cleaned.append({**chunks[i], "text": polish_text(curr)})
+
+    return cleaned
 
 # === Sentence-Aware Splitting ===
 def ends_in_sentence(text):
@@ -103,12 +138,7 @@ def count_tokens(text):
 def remove_bracket_tags(text):
     return re.sub(r"\[[^\]]+\]", "", text)
 
-def remove_duplicate_phrases_rough(text):
-    for size in range(2, 6):
-        pattern = re.compile(rf'(\S{{{size}}})\s*\1+')
-        text = pattern.sub(r'\1', text)
-    return text
-
+# using n-gram size 2-5
 def remove_redundant_phrases(text, max_phrase_len=5):
     words = text.split()
     seen_phrases = set()
@@ -134,6 +164,13 @@ def remove_redundant_phrases(text, max_phrase_len=5):
             i += 1
 
     return ' '.join(deduped_words)
+
+# matching consecutive non-space characters
+def remove_duplicate_phrases_rough(text):
+    for size in range(2, 6):
+        pattern = re.compile(rf'(\S{{{size}}})\s*\1+')
+        text = pattern.sub(r'\1', text)
+    return text
 
 def polish_text(text):
     text = remove_bracket_tags(text)

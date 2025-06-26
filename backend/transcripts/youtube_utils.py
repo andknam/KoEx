@@ -50,8 +50,8 @@ def save_parsed_transcript(video_id: str, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def save_raw_transcript(video_id: str, vtt_path: str):
-    target_path = os.path.join(PARSED_DIR, f"{video_id}.vtt")
-    os.makedirs(PARSED_DIR, exist_ok=True)
+    target_path = os.path.join(RAW_DIR, f"{video_id}.vtt")
+    os.makedirs(RAW_DIR, exist_ok=True)
     with open(vtt_path, "r", encoding="utf-8") as src, open(target_path, "w", encoding="utf-8") as dst:
         dst.write(src.read())
 

@@ -20,6 +20,12 @@ function extractVideoId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 // Player component
 const YouTubePlayer = ({
   videoId,
@@ -91,6 +97,9 @@ const TranscriptViewer = ({
               isCurrent ? 'bg-yellow-200 font-semibold' : 'text-gray-500'
             }`}
           >
+          <span className="text-sm text-gray-400 mr-2">
+            {formatTime(t.start)}
+          </span>
             {t.text}
           </div>
         );
