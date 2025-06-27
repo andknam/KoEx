@@ -6,35 +6,39 @@ This feature lets users input a YouTube link, play the video, and interact with 
 
 ## Architecture
 
-<img src="./youtube-player.png" alt="YouTube Player Architecture" width="700"/>
+<img src="./youtube-player-pipeline.png" alt="YouTube Player Pipeline" width="800"/>
 
 Frontend
 - `YouTubeTranscript.tsx`
   - `YoutubePlayer`: displays the video and tracks current time
   - `TranscriptViewer`: renders subtitle lines; clicking one conditionally displays `TranscriptAnalysis`
 - `TranscriptAnalysis.tsx`
-  - Streams results from the backend via SSE
+  - Connects to backend via SSE
   - Displays:
-    - Sentence gloss/translation (via GPT)
+    - Sentence gloss (via GPT)
     - Scrollable Hanja cards with Pinyin, 훈음, and English glosses
 
 
 Backend
-- `analyze-stream` - SSE endpoint that streams progress messages and results
-- `korean_to_hanja()` - handles the hanja info portion of language analysis
-- `analyze_korean_sentence()` - generates subtitle translation using GPT 
+- **Transcript Preprocessing**
+  - Fetch `.vtt` subtitles from YouTube
+  - Parse and segment by character/token limits
+  - Clean the result:
+    - Remove duplicates
+    - Strip overlaps at chunk boundaries
+  - Output a cleaned `.json` transcript
+- **Analysis Pipeline**
+  - `analyze-stream` - SSE endpoint that streams progress + final result
+    - `korean_to_hanja()` - extracts Hanja mappings
+    - `analyze_korean_sentence()` - generates subtitle gloss using GPT 
 
 Flow
 1. User provides a YouTube link and presses **Load**
-2. Transcript is fetched and cleaned:
-   - Deduplicates repeated lines
-   - Strips overlaps across subtitle chunk boundaries
-3. When a subtitle is clicked:
-   - An SSE request is sent to `analyze-stream`
-   - Progress messages are streamed below the clicked subtitle
-   - Final output includes:
-     - English translation of the sentence
-     - Annotated Hanja cards for meaningful base words
+2. Transcript is fetched, parsed, and cleaned
+3. Clicking a subtitle:
+   - Sends a request to `analyze-stream`
+   - Streams progress messages inline under subtitle
+   - Displays gloss and Hanja cards on completion
 
 ## Design Decisions
 
@@ -42,7 +46,7 @@ Flow
 We use Server-Sent Events to stream progress messages to the user. This gives the user feedback and avoids waiting without notice while the backend applies grammar rules for tokenization + GPT calls.
 
 ### 2. Why Not Precompute All Chunks?
-We intentionally **do not precompute the analysis for all subtitle chunks**. Precomputing would:
+Precomputing all subtitle chunks would:
 - Delay transcript rendering
 - Clutter the UI with output
 - Increase GPT usage and cost

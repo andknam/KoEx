@@ -25,21 +25,15 @@
 
 - Semantic search across Korean YouTube transcripts
   - Transcripts are automatically cleaned, deduplicated, and chunked
-  - Overlapping phrases and repeated phrases are removeed
+  - Overlapping and repeated phrases are removed
 - Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
 
 
 ### YouTube Player
 
-- YouTube player with live transcript sync
-    - Highlights current spoken chunk during playback
-
-- Interactive analysis:
-  - Click any subtitle chunk to trigger a full KoEx language analysis
-  - Streams results live as each processing stage completes
-  - Displays:
-    - Sentence gloss
-    - Inline Hanja annotations (with Pinyin + gloss)
+- Embedded video player with live transcript sync
+- Click any subtitle chunk to trigger a language analysis
+  - Streams live results: sentence gloss + inline Hanja annotations (with Pinyin + gloss)
 
 ### Deep Dives
 - [YouTube Player](./docs/youtube-player.md)
