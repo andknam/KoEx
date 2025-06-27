@@ -33,7 +33,11 @@ async def analyze_generator(input_text: str):
 
     # Step 2: POS tagging & glossing
     yield "event: progress\ndata: Chunking grammar patterns and generating glosses...\n\n"
-    korean_words = [entry["korean"] for entry in hanja_results if not entry["is_derived"]]
+    korean_words = [
+        entry["korean"]
+        for entry in hanja_results
+        if entry.get("is_derived") or entry.get("tag") is None
+    ]
     sentence_gloss, korean_word_info = analyze_korean_sentence(input_text, korean_words)
     await asyncio.sleep(0.5)
 
@@ -44,12 +48,15 @@ async def analyze_generator(input_text: str):
 
     # Step 4: Finalizing
     yield "event: progress\ndata: Finalizing response...\n\n"
-    await asyncio.sleep(0.3)
+    base_hanja_words = [
+        entry for entry in hanja_results
+        if not entry.get("is_derived")
+    ]
 
     result = {
         "sentence_gloss": sentence_gloss,
         "romanization": romanized,
-        "hanja_words": hanja_results,
+        "hanja_words": base_hanja_words,
         "word_info": korean_word_info,
     }
 

@@ -1,7 +1,7 @@
-// src/components/YouTubeTranscript.tsx
 import { useState, useEffect, useRef } from 'react';
 import YouTube from 'react-youtube';
 import axios from 'axios';
+import TranscriptAnalysis from './TranscriptAnalysis';
 
 // Types
 type TranscriptEntry = {
@@ -63,7 +63,9 @@ const TranscriptViewer = ({
   transcript: TranscriptEntry[];
   currentTime: number;
 }) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
   const currentIndex = transcript.findIndex(
     (t) => currentTime >= t.start && currentTime < t.end
   );
@@ -83,30 +85,35 @@ const TranscriptViewer = ({
   return (
     <div
       ref={containerRef}
-      className="h-64 overflow-y-auto p-2 bg-gray-50 scrollbar-none -ml-2 text-lg"
+      className="h-60 overflow-y-auto p-2 bg-gray-50 scrollbar-none text-lg"
     >
       {transcript.map((t, i) => {
         const isCurrent = i === currentIndex;
         const isContext = Math.abs(i - currentIndex) <= 2;
         if (!isCurrent && !isContext) return null;
+
         return (
-          <div
-            key={i}
-            data-index={i}
-            className={`p-1 rounded leading-relaxed max-w-[720px] ${
-              isCurrent ? 'bg-yellow-200 font-semibold' : 'text-gray-500'
-            }`}
-          >
-          <span className="text-sm text-gray-400 mr-2">
-            {formatTime(t.start)}
-          </span>
-            {t.text}
+          <div key={i} data-index={i} className="mb-2">
+            <div
+              className={`p-1 rounded max-w-[720px] cursor-pointer ${
+                isCurrent ? 'bg-yellow-200 font-semibold' : 'text-gray-500'
+              }`}
+              onClick={() => setActiveIndex(i === activeIndex ? null : i)}
+            >
+              <span className="text-sm text-gray-400 mr-2">
+                {formatTime(t.start)}
+              </span>
+              {t.text}
+            </div>
+
+            {activeIndex === i && <TranscriptAnalysis chunk={t.text} />}
           </div>
         );
       })}
     </div>
   );
 };
+
 
 // Main Component
 const YouTubeTranscript = ({ url }: Props) => {
@@ -118,24 +125,15 @@ const YouTubeTranscript = ({ url }: Props) => {
     if (!url) return;
 
     const id = extractVideoId(url);
-    if (!id) {
-      setVideoId(null);
-      setTranscript([]);
-      return;
-    }
+    if (!id) return;
 
     setVideoId(id);
 
     const fetchTranscript = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:8000/transcript?videoUrl=${encodeURIComponent(url)}`
-        );
-        console.log('Transcript response:', res.data);
-        setTranscript(res.data);
-      } catch (err) {
-        console.error('Failed to fetch transcript:', err);
-      }
+      const res = await axios.get(
+        `http://localhost:8000/transcript?videoUrl=${encodeURIComponent(url)}`
+      );
+      setTranscript(res.data);
     };
 
     fetchTranscript();
