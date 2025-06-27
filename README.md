@@ -24,17 +24,22 @@
 ![Semantic Search Pipeline](./docs/semantic-search-pipeline.png)
 
 - Semantic search across Korean YouTube transcripts
+  - Transcripts are automatically cleaned, deduplicated, and chunked
+  - Overlapping phrases and repeated phrases are removeed
 - Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
 
 
 ### YouTube Player 
 
 - YouTube player with live transcript sync
-  - Highlights current subtitle during playback
+    - Highlights current spoken chunk during playback
 
-- Interactive analysis (coming soon):
-  - Click on any transcript chunk to run full KoEx language analysis
-  - Live display of grammar breakdown, hanja annotations, and glossing
+- Interactive analysis:
+  - Click any subtitle chunk to trigger a full KoEx language analysis
+  - Streams results live as each processing stage completes
+  - Displays:
+    - Sentence gloss
+    - Inline Hanja annotations (with Pinyin + gloss)
 
 ## Roadmap
 
@@ -42,7 +47,6 @@
 - [x] Expand idiom + fixed expression detection
 - [x] Handle negation patterns in verbs (i.e. -지 않다, -지 못하다) 
 - [x] Semantic + vector search (OpenAI + Qdrant)
-- [x] YouTube transcript extraction and chunking
 - [x] YouTube player with live analysis
 - [ ] Update semantic search UI with richer metadata
 
