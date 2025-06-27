@@ -4,8 +4,6 @@ This feature lets users input a YouTube link, play the video, and interact with 
 
 <img src="./player-example.png" alt="Player Example" width="600"/>
 
----
-
 ## Architecture
 
 <img src="./youtube-player.png" alt="YouTube Player Architecture" width="700"/>
