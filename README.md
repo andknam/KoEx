@@ -29,7 +29,7 @@
 - Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
 
 
-### YouTube Player 
+### YouTube Player
 
 - YouTube player with live transcript sync
     - Highlights current spoken chunk during playback
@@ -40,6 +40,9 @@
   - Displays:
     - Sentence gloss
     - Inline Hanja annotations (with Pinyin + gloss)
+
+### Deep Dives
+- [YouTube Player](./docs/youtube-player.md)
 
 ## Roadmap
 
