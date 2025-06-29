@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Query
 from backend.gpt.openai_client import OpenAIClient
 from backend.vector.qdrant_wrapper import search 
-from typing import List
 
 router = APIRouter()
 
