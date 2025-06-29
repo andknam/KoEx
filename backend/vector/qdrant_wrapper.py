@@ -12,7 +12,7 @@ def ensure_collection():
     if not client.collection_exists(collection_name=COLLECTION_NAME):
         client.create_collection(
             collection_name=COLLECTION_NAME,
-            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE)
+            vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.DOT)
         )
 
 def embed_and_upsert(chunks: List[dict], embed_fn, source: str):
