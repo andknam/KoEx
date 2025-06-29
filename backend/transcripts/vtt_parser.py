@@ -5,6 +5,8 @@ HARD_CHAR_LIMIT = 160
 SOFT_TOKEN_LIMIT = 35  # Approximate token threshold per chunk
 HARD_TOKEN_LIMIT = 50
 
+SENTENCE_ENDINGS = ("다", "요", "니다", ".", "!", "?")
+
 # === Transcript Parsing ===
 def clean_vtt_text(raw_text):
     # Remove inline timestamp and <c> tags
@@ -47,48 +49,61 @@ def parse_vtt_file(vtt_path):
         seg["start"] = time_str_to_seconds(seg["start"])
         seg["end"] = time_str_to_seconds(seg["end"])
 
-    return merge_chunks(raw_segments)
+    return chunk_by_sentences(raw_segments)
 
-# === Merging Chunks ===
-def merge_chunks(segments):
-    merged = []
-    curr = None
+# === Sentence-aware Chunking ===
+def chunk_by_sentences(segments):
+    chunks = []
+    current_chunk = {"text": "", "start": None, "end": None}
 
     for seg in segments:
-        seg_text = seg["text"].strip()
+        sentences = split_into_sentences(seg["text"])
+        for sentence in sentences:
+            if not sentence.strip():
+                continue
 
-        if len(seg_text) < 5:
-            continue
+            # fix overlap between sentence chunks
+            # E.g., line 1: "이 제품은 진짜 좋아요.", line 2: "진짜 좋아요. 정말 편해요."
+            sentence = strip_overlap(current_chunk["text"], sentence)
+            sentence = strip_fuzzy_overlap(current_chunk["text"], sentence)
 
-        if not curr:
-            curr = seg.copy()
-            continue
+            sentence_token_count = count_tokens(sentence)
+            sentence_char_count = len(sentence)
 
-        combined_text = f"{curr['text']} {seg_text}".strip()
-        combined_token_count = count_tokens(combined_text)
+            if current_chunk["text"]:
+                combined_text = f"{current_chunk['text']} {sentence}".strip()
+                combined_token_count = count_tokens(combined_text)
+                combined_char_count = len(combined_text)
+            else:
+                combined_text = sentence
+                combined_token_count = sentence_token_count
+                combined_char_count = sentence_char_count
 
-        if (
-            (len(combined_text) > SOFT_CHAR_LIMIT or combined_token_count > SOFT_TOKEN_LIMIT)
-            and ends_in_sentence(curr["text"])
-        ) or (
-            len(combined_text) > HARD_CHAR_LIMIT or combined_token_count > HARD_TOKEN_LIMIT
-        ):
-            merged.append(curr)
-            curr = seg.copy()
-        else:
-            seg_text = strip_overlap(curr["text"], seg_text)
-            seg_text = strip_fuzzy_overlap(curr["text"], seg_text)
-            curr["end"] = seg["end"]
-            curr["text"] = f"{curr['text']} {seg_text}".strip()
+            if (combined_token_count > HARD_TOKEN_LIMIT or combined_char_count > HARD_CHAR_LIMIT):
+                chunks.append({
+                    "text": polish_text(current_chunk["text"]),
+                    "start": current_chunk["start"],
+                    "end": current_chunk["end"]
+                })
+                current_chunk = {
+                    "text": sentence,
+                    "start": seg["start"],
+                    "end": seg["end"]
+                }
+            else:
+                if not current_chunk["text"]:
+                    current_chunk["start"] = seg["start"]
+                current_chunk["text"] = combined_text
+                current_chunk["end"] = seg["end"]
 
-    if curr:
-        merged.append(curr)
+    if current_chunk["text"]:
+        chunks.append({
+            "text": polish_text(current_chunk["text"]),
+            "start": current_chunk["start"],
+            "end": current_chunk["end"]
+        })
 
-    for m in merged:
-        m["text"] = polish_text(m["text"])
-
-    # second pass for intra-check repetitions + repeated word/phrases across chunk boundary
-    return clean_chunk_overlaps(merged)
+    return clean_chunk_overlaps(chunks)
 
 # === Overlap Handling ===
 def strip_overlap(prev_text, next_text, window=5):
@@ -109,26 +124,8 @@ def strip_fuzzy_overlap(prev: str, curr: str, max_len: int = 50) -> str:
             return curr[i:].strip()
     return curr
 
-# window = max # of consecutive repeated words to check across word boundary
-def clean_chunk_overlaps(chunks, max_overlap_len=12):
-    cleaned = [chunks[0]]
-    for i in range(1, len(chunks)):
-        prev = cleaned[-1]["text"]
-        curr = chunks[i]["text"]
-
-        for w in range(max_overlap_len, 2, -1):
-            prev_suffix = ' '.join(prev.split()[-w:])
-            if prev_suffix in curr and curr.startswith(prev_suffix):
-                curr = curr[len(prev_suffix):].strip()
-                break
-
-        cleaned.append({**chunks[i], "text": polish_text(curr)})
-
-    return cleaned
-
-# === Sentence-Aware Splitting ===
-def ends_in_sentence(text):
-    return text.endswith(("다", "요", "니다", ".", "!", "?"))
+def split_into_sentences(text):
+    return re.split(r'(?<=[\.\?!다요니다])\s+', text)
 
 # === Token Estimation ===
 def count_tokens(text):
@@ -176,5 +173,21 @@ def polish_text(text):
     text = remove_bracket_tags(text)
     text = remove_duplicate_phrases_rough(text)
     text = remove_redundant_phrases(text)
-    
     return text.strip()
+
+# === Post-chunk Deduplication ===
+def clean_chunk_overlaps(chunks, max_overlap_len=12):
+    cleaned = [chunks[0]]
+    for i in range(1, len(chunks)):
+        prev = cleaned[-1]["text"]
+        curr = chunks[i]["text"]
+
+        for w in range(max_overlap_len, 2, -1):
+            prev_suffix = ' '.join(prev.split()[-w:])
+            if prev_suffix in curr and curr.startswith(prev_suffix):
+                curr = curr[len(prev_suffix):].strip()
+                break
+
+        cleaned.append({**chunks[i], "text": polish_text(curr)})
+
+    return cleaned

@@ -1,6 +1,6 @@
 # Youtube Player
 
-This feature lets users input a YouTube link, play the video, and interact with a synchronized transcript. As the video plays, the current subtitle is highlighted. Clicking on a subtitle triggers a language analysis directly below the selected line.
+This feature lets users input a YouTube link, play the video, and interact with a synchronized transcript. As the video plays, the current subtitle is highlighted. Clicking on a subtitle triggers a language analysis directly below the selected line. 
 
 <img src="./player-example.png" alt="Player Example" width="600"/>
 

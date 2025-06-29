@@ -19,21 +19,14 @@
   - Stopword removal
   - YAML-configured grammar rule engine for scalability and easy rule expansion
 
-### Search
-
-![Semantic Search Pipeline](./docs/semantic-search-pipeline.png)
-
-- Semantic search across Korean YouTube transcripts
-  - Transcripts are automatically cleaned, deduplicated, and chunked
-  - Overlapping and repeated phrases are removed
-- Vector search powered by OpenAI (`text-embedding-3-small`) + Qdrant
-
-
 ### YouTube Player
 
 - Embedded video player with live transcript sync
 - Click any subtitle chunk to trigger a language analysis
   - Sentence gloss + inline Hanja annotations (with Pinyin + gloss)
+- Related chunk discovery (In-Progress):
+  - Semantic search across videos via OpenAI embeddings + Qdrant
+  - Shows similar phrases from other videos (based on meaning, not keywords)
 
 ### Deep Dives
 - [YouTube Player](./docs/youtube-player.md)
