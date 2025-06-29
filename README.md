@@ -33,7 +33,7 @@
 
 - Embedded video player with live transcript sync
 - Click any subtitle chunk to trigger a language analysis
-  - Streams live results: sentence gloss + inline Hanja annotations (with Pinyin + gloss)
+  - Sentence gloss + inline Hanja annotations (with Pinyin + gloss)
 
 ### Deep Dives
 - [YouTube Player](./docs/youtube-player.md)
