@@ -18,15 +18,11 @@ Frontend
     - Sentence gloss (via GPT)
     - Scrollable Hanja cards with Pinyin, 훈음, and English glosses
 
-
 Backend
 - **Transcript Preprocessing**
   - Fetch `.vtt` subtitles from YouTube
-  - Parse and segment by character/token limits
-  - Clean the result:
-    - Remove duplicates
-    - Strip overlaps at chunk boundaries
-  - Output a cleaned `.json` transcript
+  - Parse and segment by sentence boundaries + character/token limits
+  - Process the result and output a cleaned `.json` transcript
 - **Analysis Pipeline**
   - `analyze-stream` - SSE endpoint that streams progress + final result
     - `korean_to_hanja()` - extracts Hanja mappings

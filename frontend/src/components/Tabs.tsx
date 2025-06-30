@@ -28,7 +28,8 @@ export default function Tabs() {
 
   return (
     <div className="w-full flex flex-col items-start">
-      <div className="w-full max-w-3xl space-y-4">
+      <div className="w-[645px] space-y-4">
+        {/* Tabs */}
         <div className="flex space-x-2">
           <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
@@ -40,7 +41,7 @@ export default function Tabs() {
           >
             Language Analysis
           </button>
-          <button
+          {/* <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
               mode === 'search'
                 ? 'bg-black text-white'
@@ -49,7 +50,7 @@ export default function Tabs() {
             onClick={() => setMode('search')}
           >
             Semantic Search
-          </button>
+          </button> */}
           <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
               mode === 'youtube'
@@ -85,7 +86,7 @@ export default function Tabs() {
                   ? 'Enter a question: Why did he decide to start a brand?'
                   : 'Paste YouTube URL'
             }
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+            className="flex-grow border border-gray-300 rounded-md px-3 py-2 focus:outline-none"
             type="text"
           />
           {mode === 'analyze' && (
@@ -99,7 +100,7 @@ export default function Tabs() {
               Analyze
             </button>
           )}
-          {mode === 'search' && (
+          {/* {mode === 'search' && (
             <button
               onClick={handleSearch}
               disabled={isSearching}
@@ -109,7 +110,7 @@ export default function Tabs() {
             >
               Search
             </button>
-          )}
+          )} */}
           {mode === 'youtube' && (
             <button
               onClick={() => setSubmittedYoutubeUrl(youtubeUrl.trim())}
@@ -128,13 +129,13 @@ export default function Tabs() {
               onDone={() => setIsAnalyzing(false)}
             />
           </div>
-          <div style={{ display: mode === 'search' ? 'block' : 'none' }}>
+          {/* <div style={{ display: mode === 'search' ? 'block' : 'none' }}>
             <SemanticSearch
               input={submittedSearchQuery}
               trigger={searchTrigger}
               onDone={() => setIsSearching(false)}
             />
-          </div>
+          </div> */}
           <div style={{ display: mode === 'youtube' ? 'block' : 'none' }}>
             <YouTubeTranscript url={submittedYoutubeUrl} />
           </div>

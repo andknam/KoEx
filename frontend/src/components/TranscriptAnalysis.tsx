@@ -19,7 +19,7 @@ export default function TranscriptAnalysis({ chunk }: { chunk: string }) {
     setProgressMessages([]);
     setResult(null);
 
-    setProgressMessages(['🔍 Starting analysis...']);
+    setProgressMessages(['Starting analysis...']);
 
     const eventSource = new EventSource(
       `http://localhost:8000/analyze-stream?input=${encodeURIComponent(chunk)}`
@@ -53,7 +53,9 @@ export default function TranscriptAnalysis({ chunk }: { chunk: string }) {
       <div className="text-sm text-gray-500 mt-1">
         <ul className="space-y-1">
           {progressMessages.map((msg, i) => (
-            <li key={i} className="animate-pulse">{msg}</li>
+            <li key={i} className="animate-pulse">
+              {msg}
+            </li>
           ))}
         </ul>
       </div>

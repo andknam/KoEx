@@ -19,7 +19,7 @@ export default function LanguageAnalyzer({
     setProgressMessages([]);
     setResult(null);
 
-    setProgressMessages(['🔍 Starting analysis...']);
+    setProgressMessages(["Starting analysis..."]);
 
     const eventSource = new EventSource(
       `http://localhost:8000/analyze-stream?input=${encodeURIComponent(input)}`
@@ -71,7 +71,7 @@ export default function LanguageAnalyzer({
   }, [input]);
 
   return (
-    <div className="w-full space-y-4">
+    <div className="max-w-[640px] w-full space-y-4">
       {loading && (
         <ul className="text-sm text-gray-600 pl-1 space-y-1">
           {progressMessages.map((msg, i) => (

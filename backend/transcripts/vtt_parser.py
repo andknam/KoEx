@@ -1,11 +1,7 @@
 import re
 
-SOFT_CHAR_LIMIT = 100  # Max combined character length for merged chunks
-HARD_CHAR_LIMIT = 160
-SOFT_TOKEN_LIMIT = 35  # Approximate token threshold per chunk
-HARD_TOKEN_LIMIT = 50
-
-SENTENCE_ENDINGS = ("다", "요", "니다", ".", "!", "?")
+CHAR_LIMIT = 160
+TOKEN_LIMIT = 50
 
 # === Transcript Parsing ===
 def clean_vtt_text(raw_text):
@@ -79,7 +75,7 @@ def chunk_by_sentences(segments):
                 combined_token_count = sentence_token_count
                 combined_char_count = sentence_char_count
 
-            if (combined_token_count > HARD_TOKEN_LIMIT or combined_char_count > HARD_CHAR_LIMIT):
+            if (combined_token_count > TOKEN_LIMIT or combined_char_count > CHAR_LIMIT):
                 chunks.append({
                     "text": polish_text(current_chunk["text"]),
                     "start": current_chunk["start"],
@@ -125,11 +121,16 @@ def strip_fuzzy_overlap(prev: str, curr: str, max_len: int = 50) -> str:
     return curr
 
 def split_into_sentences(text):
-    return re.split(r'(?<=[\.\?!다요니다])\s+', text)
+    pattern = re.compile(r'(.*?(?:나다|답니다|습니다|니다|어요|예요|다|요|\.|\!|\?))\s+')
+    matches = pattern.findall(text)
+    remainder = pattern.sub('', text).strip()
+    if remainder:
+        matches.append(remainder)
+    return matches
 
 # === Token Estimation ===
 def count_tokens(text):
-    return len(text.split())
+    return len(re.findall(r'\w+|[가-힣]', text)) 
 
 # === Text Cleaning ===
 def remove_bracket_tags(text):
@@ -177,6 +178,9 @@ def polish_text(text):
 
 # === Post-chunk Deduplication ===
 def clean_chunk_overlaps(chunks, max_overlap_len=12):
+    if not chunks:
+        return []
+
     cleaned = [chunks[0]]
     for i in range(1, len(chunks)):
         prev = cleaned[-1]["text"]
@@ -184,7 +188,7 @@ def clean_chunk_overlaps(chunks, max_overlap_len=12):
 
         for w in range(max_overlap_len, 2, -1):
             prev_suffix = ' '.join(prev.split()[-w:])
-            if prev_suffix in curr and curr.startswith(prev_suffix):
+            if curr.startswith(prev_suffix):
                 curr = curr[len(prev_suffix):].strip()
                 break
 
