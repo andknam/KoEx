@@ -23,10 +23,10 @@ def get_embedding(text: str) -> list[float]:
 json_files = list(TRANSCRIPTS_DIR.glob("*.json"))
 
 for path in json_files:
-    print(f"\n📄 Processing: {path.name}")
+    print(f"\nProcessing: {path.name}")
     with open(path, "r", encoding="utf-8") as f:
         chunks = json.load(f)
 
     embed_and_upsert(chunks, get_embedding)
 
-print("✅ All transcripts embedded and stored!")
+print("All transcripts embedded and stored!")
