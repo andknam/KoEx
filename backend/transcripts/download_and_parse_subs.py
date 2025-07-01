@@ -1,8 +1,12 @@
 import os
 from urllib.parse import urlparse, parse_qs
-from backend.transcripts.youtube_utils import get_parsed_transcript, save_parsed_transcript
+from backend.transcripts.youtube_utils import (
+    get_parsed_transcript,
+    save_parsed_transcript,
+)
 
 PARSED_DIR = "backend/transcripts/youtube/parsed"
+
 
 def main():
     # if len(sys.argv) >= 2:
@@ -25,7 +29,7 @@ def main():
         "https://www.youtube.com/watch?v=Kt_TE9zgPO8",
         "https://www.youtube.com/watch?v=qQxLXILF3Is",
         "https://www.youtube.com/watch?v=eXdfme2BZA0",
-        "https://www.youtube.com/watch?v=seekmxnJFZM"
+        "https://www.youtube.com/watch?v=seekmxnJFZM",
     ]
 
     for url in urls:
@@ -37,6 +41,7 @@ def main():
 
         output_path = os.path.join(PARSED_DIR, f"{video_id}.json")
         print(f"✅ Saved parsed transcript to {output_path}")
+
 
 if __name__ == "__main__":
     main()

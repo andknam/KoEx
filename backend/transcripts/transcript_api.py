@@ -8,6 +8,7 @@ openai_client = OpenAIClient.get_client()
 
 router = APIRouter()
 
+
 @router.get("/transcript")
 def get_transcript(videoUrl: str):
     try:
@@ -15,8 +16,7 @@ def get_transcript(videoUrl: str):
 
         def get_embedding(text: str) -> list[float]:
             response = openai_client.embeddings.create(
-                model="text-embedding-3-small",
-                input=[text]
+                model="text-embedding-3-small", input=[text]
             )
             return response.data[0].embedding
 
