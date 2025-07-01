@@ -9,6 +9,7 @@ type TranscriptEntry = {
   text: string;
   start: number;
   end: number;
+  videoId: string;
 };
 
 type Props = {
@@ -128,6 +129,7 @@ const YouTubeTranscript = ({ url }: Props) => {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
   const [semanticMatches, setSemanticMatches] = useState<TranscriptEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!url) return;
@@ -152,46 +154,44 @@ const YouTubeTranscript = ({ url }: Props) => {
   }, [url]);
 
   const handleSubtitleClick = async (entry: TranscriptEntry) => {
-    const mockData = [
-      {
-        text: '이 제품은 진짜 좋아요.',
-        start: 42.1,
-        end: 45.8,
-        score: 0.91,
-        video: 'videoA',
-      },
-      {
-        text: '정말 편해요. 추천합니다.',
-        start: 48.0,
-        end: 50.3,
-        score: 0.87,
-        video: 'videoB',
-      },
-      {
-        text: '처음에는 의심했지만 지금은 만족합니다.',
-        start: 52.5,
-        end: 56.0,
-        score: 0.84,
-        video: 'videoB',
-      },
-    ];
-    setSemanticMatches(mockData);
+    try {
+      // clear out the existing cards
+      setSemanticMatches([]);
+      setIsLoading(true);
 
-    // try {
-    //   const query = encodeURIComponent(entry.text);
-    //   const res = await fetch(`http://localhost:8000/search?q=${query}`);
+      const query = encodeURIComponent(entry.text);
+      const videoId = encodeURIComponent(entry.videoId);
+      const start = encodeURIComponent(entry.start);
+      
+      const res = await fetch(
+        `http://localhost:8000/search?query=${query}&videoId=${videoId}&start=${start}`
+      );
 
-    //   if (!res.ok) throw new Error("Search failed");
+      if (!res.ok) throw new Error("Search failed");
 
-    //   const data = await res.json();
-    //   setSemanticMatches(data);
-    // } catch (err) {
-    //   console.error("Failed to fetch semantic matches", err);
-    // }
+      const data = await res.json();
+      setSemanticMatches(data);
+    } catch (err) {
+      console.error("Failed to fetch semantic matches", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleJumpTo = (start: number) => {
+    const player = document.querySelector('iframe') as HTMLIFrameElement;
+    player?.contentWindow?.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: "seekTo",
+        args: [start, true],
+      }),
+      "*"
+    );
   };
 
   return (
-    <div className="flex flex-row w-full h-full">
+    <div className="flex flex-row w-full h-[620px]">
       <div className="flex flex-col w-[700px] space-y-4">
         {videoId && (
           <>
@@ -207,8 +207,13 @@ const YouTubeTranscript = ({ url }: Props) => {
         )}
       </div>
 
-      <div className="min-w-[400px] pl-6">
-        <SemanticMatchSidebar matches={semanticMatches} />
+      <div className="min-w-[450px] pl-6 scrollbar-none overflow-y-auto">
+        <SemanticMatchSidebar
+          matches={semanticMatches}
+          currentVideoId={videoId}
+          isLoading={isLoading}
+          onJump={handleJumpTo}
+        />
       </div>
     </div>
   );

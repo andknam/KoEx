@@ -53,4 +53,4 @@ We transform `.vtt` subtitles into semantically meaningful chunks via:
 
 ### Future Improvements
 - Replace regex sentence splitting / fixed chunking with proper sentence/morpheme-based boundaries
-- Consider BBAI/BGE-M3 or other multilingual embeddings
+- Consider BAAI/BGE-M3 or other multilingual embeddings

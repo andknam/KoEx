@@ -22,12 +22,13 @@
 ### YouTube Player
 
 - Embedded video player with live transcript sync
-- Click any subtitle chunk to trigger a language analysis
-  - Sentence gloss + inline Hanja annotations (with Pinyin + gloss)
-- Related chunk discovery (In-Progress):
-  - Semantic search across videos via OpenAI embeddings + Qdrant
-  - Shows similar phrases from other videos (based on meaning, not keywords)
-
+- Click any subtitle to trigger:
+  - Inline sentence gloss + Hanja annotations
+  - Semantic search across other videos
+    - Powered by OpenAI `text-embedding-3-small` embeddings + Qdrant Vector DB
+    - Displays: timestamp, subtitle, source video, and relevance score
+    - Jump-to-timestamp enabled for same-video matches
+    
 ### Deep Dives
 - [YouTube Player](./docs/youtube-player.md)
 
@@ -36,9 +37,6 @@
 ### 🚧 In Progress
 - [x] Expand idiom + fixed expression detection
 - [x] Handle negation patterns in verbs (i.e. -지 않다, -지 못하다) 
-- [x] Semantic + vector search (OpenAI + Qdrant)
-- [x] YouTube player with live analysis
-- [ ] Update semantic search UI with richer metadata
 
 ### 🧩 Planned
 - [ ] Full sentence contextual explanations (GPT-powered)

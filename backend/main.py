@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(search_api.router, prefix="/api")
+app.include_router(search_api.router)
 app.include_router(transcript_api.router)
 
 async def analyze_generator(input_text: str):

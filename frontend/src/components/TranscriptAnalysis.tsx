@@ -26,7 +26,7 @@ export default function TranscriptAnalysis({ chunk }: { chunk: string }) {
     );
 
     eventSource.addEventListener('progress', (event: MessageEvent) => {
-      setProgressMessages((prev) => [...prev, `🛠️ ${event.data}`]);
+      setProgressMessages((prev) => [...prev, `${event.data}`]);
     });
 
     eventSource.addEventListener('result', (e) => {

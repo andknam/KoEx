@@ -26,7 +26,7 @@ def match_rule(tagged, i, rule):
 
     combined = contract_korean(matched_tokens)
 
-    print(f"[✔] Matched rule: {rule['name']} → {combined}")
+    # print(f"[✔] Matched rule: {rule['name']} → {combined}")
     return (combined, rule.get("group_as", "VV"))
 
 
