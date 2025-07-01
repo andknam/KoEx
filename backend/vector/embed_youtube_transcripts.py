@@ -26,7 +26,6 @@ for path in json_files:
     with open(path, "r", encoding="utf-8") as f:
         chunks = json.load(f)
 
-    source = path.stem
-    embed_and_upsert(chunks, get_embedding, source)
+    embed_and_upsert(chunks, get_embedding)
 
 print("✅ All transcripts embedded and stored!")

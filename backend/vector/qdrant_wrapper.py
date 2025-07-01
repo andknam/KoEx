@@ -15,11 +15,11 @@ def ensure_collection():
             vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.DOT)
         )
 
-def embed_and_upsert(chunks: List[dict], embed_fn, source: str):
+def embed_and_upsert(chunks: List[dict], embed_fn):
     ensure_collection()
     points = []
     for chunk in chunks:
-        chunk_id = hashlib.md5((chunk["text"] + chunk["start"]).encode("utf-8")).hexdigest()
+        chunk_id = hashlib.md5(f"{chunk['videoId']}-{chunk['start']:.2f}".encode("utf-8")).hexdigest()
         vector = embed_fn(chunk["text"])
         points.append(PointStruct(
             id=chunk_id,
@@ -28,7 +28,8 @@ def embed_and_upsert(chunks: List[dict], embed_fn, source: str):
                 "text": chunk["text"],
                 "start": chunk["start"],
                 "end": chunk["end"],
-                "source": source
+                "videoId": chunk["videoId"],
+                "videoTitle": chunk["videoTitle"],
             }
         ))
     client.upsert(collection_name=COLLECTION_NAME, points=points)

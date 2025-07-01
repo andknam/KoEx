@@ -8,7 +8,7 @@ from backend.transcripts.vtt_parser import parse_vtt_file
 RAW_DIR = "backend/transcripts/youtube/raw"
 PARSED_DIR = "backend/transcripts/youtube/parsed"
 LANG = "ko"
-
+    
 def sanitize_youtube_url(url: str) -> str:
     parsed = urlparse(url)
     query = parse_qs(parsed.query)
@@ -44,16 +44,20 @@ def download_subtitles(video_url: str) -> str:
         raise FileNotFoundError("No .vtt file found.")
     return vtt_files[-1]
 
+def get_video_title(video_url: str) -> str:
+    result = subprocess.run(
+        ["yt-dlp", "--get-title", video_url],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        encoding="utf-8",
+        check=True
+    )
+    return result.stdout.strip()
+
 def save_parsed_transcript(video_id: str, data):
     os.makedirs(PARSED_DIR, exist_ok=True)
     with open(get_parsed_path(video_id), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-def save_raw_transcript(video_id: str, vtt_path: str):
-    target_path = os.path.join(RAW_DIR, f"{video_id}.vtt")
-    os.makedirs(RAW_DIR, exist_ok=True)
-    with open(vtt_path, "r", encoding="utf-8") as src, open(target_path, "w", encoding="utf-8") as dst:
-        dst.write(src.read())
 
 def get_parsed_transcript(video_url: str, use_cache=False):
     video_url = sanitize_youtube_url(video_url)
@@ -66,11 +70,18 @@ def get_parsed_transcript(video_url: str, use_cache=False):
         with open(parsed_path, encoding="utf-8") as f:
             return json.load(f)
 
+    # download and parse transcript
     vtt_path = download_subtitles(video_url)
-    save_raw_transcript(video_id, vtt_path)
-
     parsed = parse_vtt_file(vtt_path)
+
+    # add video title to chunks
+    video_title = get_video_title(video_url)
+    for chunk in parsed:
+        chunk["videoId"] = video_id
+        chunk["videoTitle"] = video_title
+
     save_parsed_transcript(video_id, parsed)
+
     return parsed
 
 if __name__ == "__main__":
