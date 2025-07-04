@@ -63,7 +63,6 @@ We transform the input into semantically meaningful parts via:
 
 ### Future Improvements
 - Perform idiom detection using a hardcoded list to remove dependence on GPT
-- Extend the grammar rules to support stacked auxiliaries (i.e. `공부하지 않으려고 했어요`)
 - Extend the grammar rules to support more patterns (non-auxiliary)
     - conjunctions (`일하고 나서`)
     - conditionals (`좋으면`)
