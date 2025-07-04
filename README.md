@@ -32,7 +32,7 @@ Powered by **GPT**, **Qdrant**, and *custom grammar* + *romanization* rules
     - Jump-to-timestamp enabled for same-video matches
     
 ### Deep Dives
-- [Language Analysis](./dpcs/language-analysis.md)
+- [Language Analysis](./docs/language-analysis.md)
 - [YouTube Player](./docs/youtube-player.md)
 - [Semantic Search](./docs/semantic-search.md)
 
