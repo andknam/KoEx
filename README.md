@@ -1,35 +1,24 @@
 # KoEx
 
-Analyze Korean, search across YouTube. 
-
+**Analyze Korean. Search YouTube.**
 Powered by **GPT**, **Qdrant**, and *custom grammar* + *romanization* rules
 
 <!-- ![KoEx Demo](./docs/koex-language-analysis.gif) -->
 
 ## Features
 
-### Language Analysis Engine
-- **Custom interlinear romanization** with character-level segmentation
-- **Extraction of meaningful Korean words** with part-of-speech tags, English definitions, and example Korean sentences
-- **Korean-to-Hanja conversion**, with:
-  - Per-character annotations: *Pinyin*, *훈음*, and *English gloss*
-- Linguistic Processing Pipeline
-  - Idiom / 사자성어 detection using GPT
-  - Auxiliary grammar grouping (i.e. `하고 싶다, 할 수 있다, 하겠다`)
-    - **YAML-configured grammar rule engine** for scalability and easy rule expansion
-  - Morphological (meaning) recombination (i.e. `실천/NNG + 하/XSV + 다/EC → 실천하다`)
-  - Morphophonlogical (sound) contraction (i.e. `하 + 였 → 했`)
-  - Stopword removal / token exclusion
+### 🧠 Language Analyzer
+- Character-level romanization with interlinear output
+- GPT-powered glossing, definitions, and 사자성어 (idiom) detection
+- Korean-to-Hanja conversion with Pinyin, 훈음, and English
+- Rule-based grammar chunking and recombination engine
 
-### YouTube Transcript Interface
-
+### 📺 YouTube Search Interface
 - Embedded video player with live transcript sync
-- Click any subtitle to trigger:
-  - Inline sentence gloss + Hanja annotations
-  - **Semantic search** across other videos
-    - Powered by OpenAI `text-embedding-3-small` embeddings + Qdrant Vector DB
-    - Displays: timestamp, subtitle, source video, and relevance score
-    - Jump-to-timestamp enabled for same-video matches
+- Clicking a subtitle:
+  - Triggers inline glossing + Hanja annotation
+  - Runs semantic search via OpenAI + Qdrant
+  - Enables jump-to-timestamp for matching results
     
 ### Deep Dives
 - [Language Analysis](./docs/language-analysis.md)

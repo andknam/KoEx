@@ -2,41 +2,31 @@
 
 This feature lets users input a YouTube link, play the video, and interact with a synchronized transcript. As the video plays, the current subtitle is highlighted. Clicking on a subtitle triggers a language analysis directly below the selected line. 
 
-<img src="./player-example.png" alt="Player Example" width="600"/>
-
 ## Architecture
 
-<img src="./youtube-player-pipeline.png" alt="YouTube Player Pipeline" width="800"/>
+Frontend Components
+- `YouTubePlayer`: embeds the video and tracks current timestamp
+- `TranscriptViewer`: renders subtitles; clicking on a subtitle triggers analysis
+- `TranscriptAnalysis`: streams progress messages + displays the result of `/analyze-stream`
+- `SemanticMatchSidebar`: shows top-k semantically similar subtitles as cards
+- `ScrollableWordCards`: displays Hanja annotations with Pinyin, 훈음, and English
 
-Frontend
-- `YouTubeTranscript.tsx`
-  - `YoutubePlayer`: displays the video and tracks current time
-  - `TranscriptViewer`: renders subtitle lines; clicking one conditionally displays `TranscriptAnalysis`
-- `TranscriptAnalysis.tsx`
-  - Connects to backend via SSE
-  - Displays:
-    - Sentence gloss (via GPT)
-    - Scrollable Hanja cards with Pinyin, 훈음, and English glosses
-
-Backend
-- **Transcript Preprocessing**
-  - Fetch `.vtt` subtitles from YouTube
-  - Parse and segment by sentence boundaries + token/character limits
-  - Process the result and output a cleaned `.json` transcript
-- **Analysis Pipeline**
-  - `analyze-stream` - SSE endpoint that streams progress + final result
-    - `korean_to_hanja()` - extracts Hanja mappings
-    - `analyze_korean_sentence()` - generates subtitle gloss using GPT 
+Backend Endpoints
+- `/transcript`: downloads and preprocesses `.vtt` subtitles
+- `/analyze-stream`: performs language analysis
+- `/search`: embeds subtitle and retrieves top-k semantic matches from Qdrant
 
 Flow
 1. User provides a YouTube link and presses **Load**
-2. Transcript is fetched, parsed, and cleaned
-3. Clicking a subtitle:
+2. Subtitles are parsed and segmented into sentence-level chunks
+3. The current subtitle is highlighted in sync as the video plays
+4. Clicking a subtitle:
   - Sends a request to `/analyze-stream`
     - Streams progress messages inline under subtitle
     - Displays gloss and Hanja cards on completion
   - Sends a request to `/search`
-    - Embeds subtitle, retrieves semantic matches from Qdrant, displays matches to the right side of the player
+    - Embeds subtitle, retrieves semantic matches from Qdrant
+    - Displays related subtitles to the right side of the player
 
 ## Design Decisions
 
