@@ -134,7 +134,9 @@ const YouTubeTranscript = ({ url }: Props) => {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
   const [semanticMatches, setSemanticMatches] = useState<TranscriptEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [transcriptLoading, setTranscriptLoading] = useState(false);
+  const [matchLoading, setMatchLoading] = useState(false);
+  const [progressMessages, setProgressMessages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!url) return;
@@ -145,6 +147,10 @@ const YouTubeTranscript = ({ url }: Props) => {
     setVideoId(id);
 
     const fetchTranscript = async () => {
+      setTranscriptLoading(true);
+      setProgressMessages([]);
+
+      setProgressMessages(['Fetching Transcript...']);
       try {
         const res = await axios.get(
           `http://localhost:8000/transcript?videoUrl=${encodeURIComponent(url)}`
@@ -157,6 +163,8 @@ const YouTubeTranscript = ({ url }: Props) => {
       } catch (err) {
         console.error('Failed to fetch transcript', err);
         setTranscript([]);
+      } finally {
+        setTranscriptLoading(false);
       }
     };
 
@@ -167,7 +175,7 @@ const YouTubeTranscript = ({ url }: Props) => {
     try {
       // clear out the existing cards
       setSemanticMatches([]);
-      setIsLoading(true);
+      setMatchLoading(true);
 
       const query = encodeURIComponent(entry.text);
       const videoId = encodeURIComponent(entry.videoId);
@@ -184,7 +192,7 @@ const YouTubeTranscript = ({ url }: Props) => {
     } catch (err) {
       console.error('Failed to fetch semantic matches', err);
     } finally {
-      setIsLoading(false);
+      setMatchLoading(false);
     }
   };
 
@@ -206,12 +214,25 @@ const YouTubeTranscript = ({ url }: Props) => {
         {videoId && (
           <>
             <YouTubePlayer videoId={videoId} onTimeUpdate={setCurrentTime} />
-            <div className="-ml-2.5">
-              <TranscriptViewer
-                transcript={transcript}
-                currentTime={currentTime}
-                onSubtitleClick={handleSubtitleClick}
-              />
+
+            <div className={transcriptLoading ? "-ml-1" : "-ml-2.5"}>
+              {transcriptLoading ? (
+                <div className="text-sm text-gray-500 mt-2 ml-1">
+                  <ul className="space-y-1">
+                    {progressMessages.map((msg, i) => (
+                      <li key={i} className="animate-pulse">
+                        {msg}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <TranscriptViewer
+                  transcript={transcript}
+                  currentTime={currentTime}
+                  onSubtitleClick={handleSubtitleClick}
+                />
+              )}
             </div>
           </>
         )}
@@ -221,7 +242,7 @@ const YouTubeTranscript = ({ url }: Props) => {
         <SemanticMatchSidebar
           matches={semanticMatches}
           currentVideoId={videoId}
-          isLoading={isLoading}
+          isLoading={matchLoading}
           onJump={handleJumpTo}
         />
       </div>

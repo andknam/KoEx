@@ -16,12 +16,6 @@ export default function Tabs() {
     setSubmittedAnalyzeQuery(analyzeQuery.trim());
   };
 
-  const handleSearch = () => {
-    setIsSearching(true);
-    setSubmittedSearchQuery(searchQuery.trim());
-    setSearchTrigger((prev) => prev + 1);
-  };
-
   return (
     <div className="w-full flex flex-col items-start">
       <div className="w-[645px] space-y-4">
