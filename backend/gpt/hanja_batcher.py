@@ -62,7 +62,9 @@ def generate_hanja_for_words(words, batch_size=BATCH_SIZE):
         prompt = build_prompt(batch)
         content = client.call(prompt)
         data = parse_response(content)
+
         if data:
             result.extend(data)
         time.sleep(1)  # to be respectful
+
     return result

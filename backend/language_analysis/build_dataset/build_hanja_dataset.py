@@ -7,6 +7,7 @@ from collections import defaultdict
 
 ### === STEP 1: Scrape Wiktionary for char-level info ===
 
+
 def fetch_char_data(char):
     url = f"https://en.wiktionary.org/wiki/{char}"
     res = requests.get(url)
@@ -26,7 +27,6 @@ def fetch_char_data(char):
         if pinyin_ipa:
             entry["pinyin"] = pinyin_ipa.get_text(strip=True)
 
-
     # Get English gloss
     defn_block = soup.find("span", id="Chinese")
     if defn_block:
@@ -38,16 +38,18 @@ def fetch_char_data(char):
 
     return entry if entry["pinyin"] or entry["meaning"] else None
 
+
 def extract_korean_readings(soup):
     readings = set()
     for span in soup.find_all("span", attrs={"lang": re.compile(r"^ko")}):
         text = span.get_text(strip=True)
-        if all('가' <= ch <= '힣' for ch in text) and 1 <= len(text) <= 2:
+        if all("가" <= ch <= "힣" for ch in text) and 1 <= len(text) <= 2:
             readings.add(text)
 
     ko_pron_matches = re.findall(r"\{\{ko-pron\|([가-힣]+)", soup.prettify())
     readings.update(ko_pron_matches)
     return list(readings)
+
 
 def build_char_and_reverse_dict(unique_hanja_chars):
     char_dict = {}
@@ -76,7 +78,9 @@ def build_char_and_reverse_dict(unique_hanja_chars):
 
     return char_dict, reverse_dict
 
+
 ### === STEP 2: Use reverse_dict to convert Korean words to Hanja ===
+
 
 def lookup_hanja_for_word(word, reverse_dict):
     hanja_chars = []
@@ -86,20 +90,21 @@ def lookup_hanja_for_word(word, reverse_dict):
             hanja_chars.append(hanjas[0])  # pick first for now
         else:
             hanja_chars.append(syllable)
-    return ''.join(hanja_chars), hanja_chars
+    return "".join(hanja_chars), hanja_chars
+
 
 def enrich_korean_word_dict(korean_dict, reverse_dict, char_dict):
     enriched = {}
     for word in korean_dict:
         hanja_word, hanja_chars = lookup_hanja_for_word(word, reverse_dict)
         seen = set()
-        ordered_chars = [c for c in hanja_chars if c in char_dict and not (c in seen or seen.add(c))]
+        ordered_chars = [
+            c for c in hanja_chars if c in char_dict and not (c in seen or seen.add(c))
+        ]
 
-        enriched[word] = {
-            "hanja": hanja_word,
-            "chars": ordered_chars
-        }
+        enriched[word] = {"hanja": hanja_word, "chars": ordered_chars}
     return enriched
+
 
 ### === MAIN ===
 
@@ -112,7 +117,7 @@ if __name__ == "__main__":
     all_hangul_syllables = set()
     for word in korean_word_dict:
         for ch in word:
-            if '가' <= ch <= '힣':
+            if "가" <= ch <= "힣":
                 all_hangul_syllables.add(ch)
 
     print(f"🔡 Found {len(all_hangul_syllables)} unique Hangul syllables")
@@ -126,9 +131,13 @@ if __name__ == "__main__":
         json.dump(hangul_to_hanja, f, ensure_ascii=False, indent=2)
 
     # Step 3: Enrich word dict using hanja mapping
-    enriched_dict = enrich_korean_word_dict(korean_word_dict, hangul_to_hanja, hanja_char_dict)
+    enriched_dict = enrich_korean_word_dict(
+        korean_word_dict, hangul_to_hanja, hanja_char_dict
+    )
 
     with open("hanja_dict_enriched.json", "w", encoding="utf-8") as f:
         json.dump(enriched_dict, f, ensure_ascii=False, indent=2)
 
-    print("📁 Saved: hanja_char_dict.json, hangul_to_hanja.json, hanja_dict_enriched.json")
+    print(
+        "📁 Saved: hanja_char_dict.json, hangul_to_hanja.json, hanja_dict_enriched.json"
+    )

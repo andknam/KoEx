@@ -5,11 +5,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from backend.gpt.hanja_batcher import generate_hanja_for_words
 from backend.gpt.korean_analyzer import analyze_korean_sentence
-from backend.romanizer import romanize
-from backend.hanja_utils.hanja_pipeline import korean_to_hanja, tag_derived_forms
+
+from backend.language_analysis.linguistic_processing.filtering import (
+    filter_korean_tokens,
+)
+from backend.language_analysis.word_extraction import (
+    extract_candidate_korean_words,
+    tag_if_derived_by_substring,
+)
+
+from backend.language_analysis.romanizer import romanize
+
 from backend.vector import search_api
-from backend.transcripts import transcript_api 
+from backend.transcripts import transcript_api
 
 app = FastAPI()
 
@@ -25,38 +35,75 @@ app.add_middleware(
 app.include_router(search_api.router)
 app.include_router(transcript_api.router)
 
-async def analyze_generator(input_text: str):
-    # Step 1: Extract Hanja information
-    yield "event: progress\ndata: Extracting meaningful Korean words and Hanja matches...\n\n"
-    hanja_results = tag_derived_forms(korean_to_hanja(input_text))
-    await asyncio.sleep(0.5) 
 
-    # Step 2: POS tagging & glossing
-    yield "event: progress\ndata: Chunking grammar patterns and generating glosses...\n\n"
-    korean_words = [
-        entry["korean"]
-        for entry in hanja_results
-        if entry.get("is_derived") or entry.get("tag") is None
-    ]
-    sentence_gloss, korean_word_info = analyze_korean_sentence(input_text, korean_words)
+async def analyze_generator(input_text: str):
+    # Step 1: Tokenize + tag candidate korean words with base / derived
+    await asyncio.sleep(0.5)
+    yield "event: progress\ndata: Tokenizing input...\n\n"
+    await asyncio.sleep(0.25)
+    yield "event: progress\ndata: Identifying idioms and meaningful Korean word candidates...\n\n"
+
+    tokens = filter_korean_tokens(input_text)
+    print(f"{tokens=}")
+
+    all_korean_candidate_words = extract_candidate_korean_words(tokens)
+    print(f"{all_korean_candidate_words=}")
+
+    base_and_derived_korean_words = tag_if_derived_by_substring(all_korean_candidate_words)
+    print(f"{base_and_derived_korean_words=}")
     await asyncio.sleep(0.5)
 
-    # Step 3: Romanization
+    # Step 2: Generate hanja matches for base korean words
+    yield "event: progress\ndata: Generating Hanja annotations for base Korean words...\n\n"
+
+    # send base words to hanja prompt
+    base_korean_words = [
+        entry["korean"]
+        for entry in base_and_derived_korean_words
+        if not entry["is_derived"]
+    ]
+    print(f"{base_korean_words=}")
+
+    hanja_words = generate_hanja_for_words(base_korean_words)
+    await asyncio.sleep(0.5)
+
+    # Step 3: Generate gloss and korean word information
+    yield "event: progress\ndata: Creating sentence gloss and Korean word definitions...\n\n"
+
+    # send derived words to korean info prompt
+    derived_variants = set()
+    base_candidates = set()
+
+    for entry in base_and_derived_korean_words:
+        if entry["is_derived"]:
+            derived_variants.add(entry["base_form"])
+        else:
+            base_candidates.add(entry["korean"])
+
+    derived_korean_words = [
+        entry["korean"]
+        for entry in base_and_derived_korean_words
+        if entry["is_derived"] or entry["korean"] not in derived_variants
+    ]
+
+    print(f"{derived_korean_words=}")
+    sentence_gloss, korean_word_info = analyze_korean_sentence(
+        input_text, derived_korean_words
+    )
+    await asyncio.sleep(0.5)
+
+    # Step 4: Romanization
     yield "event: progress\ndata: Generating romanization...\n\n"
     romanized = romanize(input_text)
     await asyncio.sleep(0.5)
 
-    # Step 4: Finalizing
+    # Step 5: Finalizing
     yield "event: progress\ndata: Finalizing response...\n\n"
-    base_hanja_words = [
-        entry for entry in hanja_results
-        if not entry.get("is_derived")
-    ]
 
     result = {
         "sentence_gloss": sentence_gloss,
         "romanization": romanized,
-        "hanja_words": base_hanja_words,
+        "hanja_words": hanja_words,
         "word_info": korean_word_info,
     }
 
@@ -66,28 +113,3 @@ async def analyze_generator(input_text: str):
 @app.get("/analyze-stream")
 async def analyze_stream(input: str):
     return StreamingResponse(analyze_generator(input), media_type="text/event-stream")
-
-@app.get("/analyze")
-def analyze(input: str):
-    # get all info about each hanja
-    hanja_results = korean_to_hanja(input)
-
-    # get all info about korean words
-        # word, pos, meaning, example gloss
-    # TODO: filter out determiners / particles / hashmap for specific verbs
-    # i.e. 있 verb (conjugated form of 있다)
-    korean_words = [entry["korean"] for entry in hanja_results]
-    sentence_gloss, korean_word_info = analyze_korean_sentence(input, korean_words)
-
-    # for testing
-    # hanja_results = []
-    # sentence_gloss = ''
-    # korean_word_info = []
-
-    return {
-        "romanization": romanize(input),
-        "hanja_words": hanja_results,
-        "sentence_gloss": sentence_gloss,
-        "word_info": korean_word_info,
-        # "test": test,
-    }

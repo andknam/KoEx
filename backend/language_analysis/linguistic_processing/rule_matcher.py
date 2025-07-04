@@ -1,10 +1,13 @@
 import yaml
-from typing import List, Tuple
 
-from backend.hanja_utils.morph_utils import contract_korean
+from backend.language_analysis.linguistic_processing.grouping import contract_korean
 
-with open("backend/hanja_utils/auxiliary_grammar_rules.yaml", encoding="utf-8") as f:
+with open(
+    "backend/language_analysis/linguistic_processing/auxiliary_grammar_rules.yaml",
+    encoding="utf-8",
+) as f:
     GRAMMAR_RULES = yaml.safe_load(f)
+
 
 def match_rule(tagged, i, rule):
     pattern = rule["pattern"]
@@ -15,10 +18,11 @@ def match_rule(tagged, i, rule):
     for offset, cond in enumerate(pattern):
         token, tag = tagged[i + offset]
 
-        # Check tag if specified
+        # check tag if specified
         if "tag" in cond and cond["tag"] != tag:
             return None
-        # Check token if specified
+
+        # check token if specified
         if "token" in cond and cond["token"] != token:
             return None
 
