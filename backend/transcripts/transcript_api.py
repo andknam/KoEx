@@ -13,16 +13,15 @@ router = APIRouter()
 def get_transcript(videoUrl: str):
     try:
         chunks = get_parsed_transcript(videoUrl)
-
-        def get_embedding(text: str) -> list[float]:
-            response = openai_client.embeddings.create(
-                model="text-embedding-3-small", input=[text]
-            )
-            return response.data[0].embedding
-
         embed_and_upsert(chunks, get_embedding)
 
         return chunks
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+def get_embedding(text: str) -> list[float]:
+    response = openai_client.embeddings.create(
+        model="text-embedding-3-small", input=[text]
+    )
+    return response.data[0].embedding

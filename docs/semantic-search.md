@@ -2,8 +2,6 @@
 
 This pipeline powers KoEx’s subtitle-aware semantic search using OpenAI embeddings and Qdrant vector search.
 
----
-
 ### Embedding Strategy
 
 - **Model**: `text-embedding-3-small`  
@@ -13,8 +11,6 @@ This pipeline powers KoEx’s subtitle-aware semantic search using OpenAI embedd
   - Supports multilingual input and tuned for semantic similarity
   - Fast and cheap (compared to `text-embedding-3-large`)
   - Good enough baseline for retrieval
-
----
 
 ### Transcript Chunking Pipeline
 
@@ -31,26 +27,23 @@ We transform `.vtt` subtitles into semantically meaningful chunks via:
 5. Chunk Merging
    - Merge short sentences while considering:
      - `TOKEN_LIMIT = 50`
-     - `CHAR_LIMIT = 160`
+     - `CHAR_LIMIT = 100`
 6. Strip Overlap
-    - Remove duplicated or overlapping phrases across chunks
-    - Handle fuzzy overlaps (i.e. "좋아요. 정말 편해요." vs "정말 편해요.")
+    - Remove duplicated or overlapping phrases across chunks (i.e. `...날씨가 좋다/날씨가 좋다...` --> `...날씨가 좋다/`)
+    - Handle fuzzy overlaps (i.e. `...공부하고 싶어요/하고 싶어요...` --> `...공부하고 싶어요/`)
+      - Useful when phrases are not perfectly tokenized 
 7. Final Polish
    - Remove bracket tags (`[음악]`)
-   - De-duplicate repeated character sequences and n-grams
-
----
+   - De-duplicate repeated character sequences and n-grams (i.e. `그 그 그` --> `그`)
 
 ### Query Flow
 
-1. User clicks “See Similar” on a subtitle
+1. User clicks on a subtitle
 2. Koex embeds the subtitle chunk
 3. Sends query to `/search`
-4. Qdrant retrieves top-k similar chunks
-5. Related results are rendered on the side of the youtube player
-
----
+4. Qdrant retrieves top-k semantically similar chunks
+5. Related results are rendered on the right side of the youtube player
 
 ### Future Improvements
-- Replace regex sentence splitting / fixed chunking with proper sentence/morpheme-based boundaries
+- Replace regex sentence splitting with a Korean POS tagger and split based on final endings + sentence particles (i.e. EF + SF patterns)
 - Consider BAAI/BGE-M3 or other multilingual embeddings

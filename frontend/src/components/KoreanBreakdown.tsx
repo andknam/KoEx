@@ -15,7 +15,7 @@ export default function KoreanBreakdown({ words }: { words: any }) {
       <ul className="space-y-2">
         {words.map((w, idx) => (
           <li key={idx} className="flex items-start gap-4">
-            <div className="text-lg font-bold w-20 shrink-0">{w.word}</div>
+            <div className="text-lg font-bold w-32 shrink-0">{w.word}</div>
             <div className="space-y-1">
               <p className="text-sm text-gray-500">{w.pos}</p>
               <p className="text-sm">{w.definition}</p>

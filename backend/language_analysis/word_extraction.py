@@ -4,7 +4,7 @@ def extract_candidate_korean_words(filtered_tokens: list[tuple[str, str]]) -> li
     base_words = []
 
     for word, tag in filtered_tokens:
-        if tag in content_tags and len(word) <= 4 and word not in seen:
+        if tag in content_tags and word not in seen:
             base_words.append(word)
             seen.add(word)
 

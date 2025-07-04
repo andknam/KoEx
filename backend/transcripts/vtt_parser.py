@@ -1,6 +1,6 @@
 import re
 
-CHAR_LIMIT = 160
+CHAR_LIMIT = 100
 TOKEN_LIMIT = 50
 
 
@@ -134,9 +134,7 @@ def strip_fuzzy_overlap(prev: str, curr: str, max_len: int = 50) -> str:
 
 
 def split_into_sentences(text):
-    pattern = re.compile(
-        r"(.*?(?:나다|답니다|습니다|니다|어요|예요|다|요|\.|\!|\?))\s+"
-    )
+    pattern = re.compile(r"(.*?(?:니다|어요|예요|다|요|\.|\!|\?))(?=\s|$)")
     matches = pattern.findall(text)
     remainder = pattern.sub("", text).strip()
     if remainder:

@@ -8,6 +8,15 @@ with open(
 ) as f:
     GRAMMAR_RULES = yaml.safe_load(f)
 
+TAG_EQUIVALENTS = {
+    "EF": {"EF", "EC"},
+    "VA": {"VA", "VX"},
+    "VV": {"VV", "VX", "VA"},
+    "VX": {"VX", "VA"},
+}
+
+def tag_matches(expected, actual):
+    return actual in TAG_EQUIVALENTS.get(expected, {expected})
 
 def match_rule(tagged, i, rule):
     pattern = rule["pattern"]
@@ -18,11 +27,9 @@ def match_rule(tagged, i, rule):
     for offset, cond in enumerate(pattern):
         token, tag = tagged[i + offset]
 
-        # check tag if specified
-        if "tag" in cond and cond["tag"] != tag:
+        if "tag" in cond and not tag_matches(cond["tag"], tag):
             return None
 
-        # check token if specified
         if "token" in cond and cond["token"] != token:
             return None
 
@@ -46,6 +53,7 @@ def merge_aux_grammar_chunks(tagged: list[tuple[str, str]]) -> list[tuple[str, s
         best_match = None
         best_len = 0
 
+        # print(f"\nChecking token at index {i}: {tagged[i:i+5]}")
         for rule in GRAMMAR_RULES:
             result = match_rule(tagged, i, rule)
             if result:

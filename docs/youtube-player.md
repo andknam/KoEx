@@ -21,7 +21,7 @@ Frontend
 Backend
 - **Transcript Preprocessing**
   - Fetch `.vtt` subtitles from YouTube
-  - Parse and segment by sentence boundaries + character/token limits
+  - Parse and segment by sentence boundaries + token/character limits
   - Process the result and output a cleaned `.json` transcript
 - **Analysis Pipeline**
   - `analyze-stream` - SSE endpoint that streams progress + final result
@@ -32,9 +32,11 @@ Flow
 1. User provides a YouTube link and presses **Load**
 2. Transcript is fetched, parsed, and cleaned
 3. Clicking a subtitle:
-   - Sends a request to `analyze-stream`
-   - Streams progress messages inline under subtitle
-   - Displays gloss and Hanja cards on completion
+  - Sends a request to `/analyze-stream`
+    - Streams progress messages inline under subtitle
+    - Displays gloss and Hanja cards on completion
+  - Sends a request to `/search`
+    - Embeds subtitle, retrieves semantic matches from Qdrant, displays matches to the right side of the player
 
 ## Design Decisions
 
