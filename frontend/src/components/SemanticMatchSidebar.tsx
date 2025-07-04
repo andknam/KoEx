@@ -13,9 +13,18 @@ type Props = {
   onJump: (start: number) => void;
 };
 
-const SemanticMatchSidebar = ({ matches, currentVideoId, isLoading, onJump }: Props) => {
+const SemanticMatchSidebar = ({
+  matches,
+  currentVideoId,
+  isLoading,
+  onJump,
+}: Props) => {
   if (isLoading) {
-    return <div className="text-sm text-gray-400">Searching for similar chunks...</div>;
+    return (
+      <div className="text-sm text-gray-400">
+        Searching for similar chunks...
+      </div>
+    );
   }
 
   if (matches.length) {
@@ -38,7 +47,9 @@ const SemanticMatchSidebar = ({ matches, currentVideoId, isLoading, onJump }: Pr
               <div className="mb-2" />
               <div className="text-xs text-gray-400 flex justify-between">
                 <span className="italic">
-                  {isCurrent ? 'Current video (click to jump)' : match.videoTitle}
+                  {isCurrent
+                    ? 'Current video (click to jump)'
+                    : match.videoTitle}
                 </span>
                 <span className="text-right text-gray-500 font-mono">
                   {match.score.toFixed(2)}

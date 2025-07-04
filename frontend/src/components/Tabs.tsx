@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import LanguageAnalyzer from './LanguageAnalyzer';
-import SemanticSearch from './SemanticSearch';
 import YouTubeTranscript from './YouTubeTranscript';
 
 export default function Tabs() {
@@ -8,10 +7,7 @@ export default function Tabs() {
   const [analyzeQuery, setAnalyzeQuery] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedAnalyzeQuery, setSubmittedAnalyzeQuery] = useState('');
-  const [submittedSearchQuery, setSubmittedSearchQuery] = useState('');
-  const [searchTrigger, setSearchTrigger] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [submittedYoutubeUrl, setSubmittedYoutubeUrl] = useState('');
 
@@ -41,16 +37,6 @@ export default function Tabs() {
           >
             Language Analysis
           </button>
-          {/* <button
-            className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-              mode === 'search'
-                ? 'bg-black text-white'
-                : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
-            }`}
-            onClick={() => setMode('search')}
-          >
-            Semantic Search
-          </button> */}
           <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
               mode === 'youtube'
@@ -100,17 +86,6 @@ export default function Tabs() {
               Analyze
             </button>
           )}
-          {mode === 'search' && (
-            <button
-              onClick={handleSearch}
-              disabled={isSearching}
-              className={`px-4 py-2 rounded-md text-sm ${
-                isSearching ? 'bg-gray-400 text-white' : 'bg-black text-white'
-              }`}
-            >
-              Search
-            </button>
-          )}
           {mode === 'youtube' && (
             <button
               onClick={() => setSubmittedYoutubeUrl(youtubeUrl.trim())}
@@ -121,19 +96,11 @@ export default function Tabs() {
           )}
         </div>
 
-        {/* Results (keep both components mounted) */}
         <div className="space-y-4">
           <div style={{ display: mode === 'analyze' ? 'block' : 'none' }}>
             <LanguageAnalyzer
               input={submittedAnalyzeQuery}
               onDone={() => setIsAnalyzing(false)}
-            />
-          </div>
-          <div style={{ display: mode === 'search' ? 'block' : 'none' }}>
-            <SemanticSearch
-              input={submittedSearchQuery}
-              trigger={searchTrigger}
-              onDone={() => setIsSearching(false)}
             />
           </div>
           <div style={{ display: mode === 'youtube' ? 'block' : 'none' }}>

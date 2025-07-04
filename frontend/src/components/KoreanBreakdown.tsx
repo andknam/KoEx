@@ -1,11 +1,11 @@
-// type WordInfo = {
-//     word: string;
-//     pos: string;
-//     definition: string;
-//     example: string;
-// };
+type WordInfo = {
+  word: string;
+  pos: string;
+  definition: string;
+  example: string;
+};
 
-export default function KoreanBreakdown({ words }: { words: any }) {
+export default function KoreanBreakdown({ words }: { words: WordInfo[] }) {
   if (!words || words.length === 0) {
     return <p className="text-sm text-gray-500">No words to display.</p>;
   }

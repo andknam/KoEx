@@ -4,7 +4,6 @@ import axios from 'axios';
 import TranscriptAnalysis from './TranscriptAnalysis';
 import SemanticMatchSidebar from './SemanticMatchSidebar';
 
-// Types
 type TranscriptEntry = {
   text: string;
   start: number;
@@ -13,10 +12,9 @@ type TranscriptEntry = {
 };
 
 type Props = {
-  url: string; // passed in from Tabs.tsx
+  url: string;
 };
 
-// Helper
 function extractVideoId(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : null;
@@ -28,7 +26,6 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Player component
 const YouTubePlayer = ({
   videoId,
   onTimeUpdate,
@@ -57,7 +54,6 @@ const YouTubePlayer = ({
   );
 };
 
-// Transcript Viewer
 const TranscriptViewer = ({
   transcript = [],
   currentTime,
@@ -86,7 +82,7 @@ const TranscriptViewer = ({
     }
   }, [currentIndex]);
 
-  // Now do conditional rendering AFTER all hooks
+  // No transcripts avialable for video (unavailable / video is too new)
   if (!transcript || transcript.length === 0) {
     return (
       <div className="h-60 overflow-y-auto p-4 text-gray-500 text-sm italic">
@@ -153,14 +149,14 @@ const YouTubeTranscript = ({ url }: Props) => {
         const res = await axios.get(
           `http://localhost:8000/transcript?videoUrl=${encodeURIComponent(url)}`
         );
-        console.log("Transcript response:", res.data); // ✅ ADD THIS
+        console.log('Transcript response:', res.data);
         if (res.data.length === 0) {
-          console.warn("Transcript empty — possibly unavailable.");
+          console.warn('Transcript empty — possibly unavailable.');
         }
         setTranscript(res.data);
       } catch (err) {
         console.error('Failed to fetch transcript', err);
-        setTranscript([]); 
+        setTranscript([]);
       }
     };
 
@@ -176,17 +172,17 @@ const YouTubeTranscript = ({ url }: Props) => {
       const query = encodeURIComponent(entry.text);
       const videoId = encodeURIComponent(entry.videoId);
       const start = encodeURIComponent(entry.start);
-      
+
       const res = await fetch(
         `http://localhost:8000/search?query=${query}&videoId=${videoId}&start=${start}`
       );
 
-      if (!res.ok) throw new Error("Search failed");
+      if (!res.ok) throw new Error('Search failed');
 
       const data = await res.json();
       setSemanticMatches(data);
     } catch (err) {
-      console.error("Failed to fetch semantic matches", err);
+      console.error('Failed to fetch semantic matches', err);
     } finally {
       setIsLoading(false);
     }
@@ -196,11 +192,11 @@ const YouTubeTranscript = ({ url }: Props) => {
     const player = document.querySelector('iframe') as HTMLIFrameElement;
     player?.contentWindow?.postMessage(
       JSON.stringify({
-        event: "command",
-        func: "seekTo",
+        event: 'command',
+        func: 'seekTo',
         args: [start, true],
       }),
-      "*"
+      '*'
     );
   };
 

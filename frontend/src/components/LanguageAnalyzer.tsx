@@ -19,7 +19,7 @@ export default function LanguageAnalyzer({
     setProgressMessages([]);
     setResult(null);
 
-    setProgressMessages(["Starting analysis..."]);
+    setProgressMessages(['Starting analysis...']);
 
     const eventSource = new EventSource(
       `http://localhost:8000/analyze-stream?input=${encodeURIComponent(input)}`

@@ -11,7 +11,6 @@ export default function HanjaBreakdown({ characters }: { characters: any }) {
                 {c.pinyin} – {c.english_gloss}
               </p>
             </div>
-            {/* <img src={c.strokeGif} alt="stroke order" className="h-12 w-12" /> */}
           </li>
         ))}
       </ul>

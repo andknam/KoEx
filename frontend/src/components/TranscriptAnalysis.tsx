@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import KoreanBreakdown from './KoreanBreakdown';
 import ScrollableWordCards from './ScrollableWordCards';
 
 type AnalysisResult = {
@@ -67,7 +66,6 @@ export default function TranscriptAnalysis({ chunk }: { chunk: string }) {
       <div>
         <p className="text-base">{result.sentence_gloss}</p>
       </div>
-      {/* {result.word_info && <KoreanBreakdown words={result.word_info} />} */}
 
       {result.hanja_words.length > 0 && (
         <div className="space-y-1">
