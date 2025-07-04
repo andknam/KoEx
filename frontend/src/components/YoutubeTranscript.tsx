@@ -59,11 +59,11 @@ const YouTubePlayer = ({
 
 // Transcript Viewer
 const TranscriptViewer = ({
-  transcript,
+  transcript = [],
   currentTime,
   onSubtitleClick,
 }: {
-  transcript: TranscriptEntry[];
+  transcript?: TranscriptEntry[];
   currentTime: number;
   onSubtitleClick?: (entry: TranscriptEntry) => void;
 }) => {
@@ -85,6 +85,15 @@ const TranscriptViewer = ({
       });
     }
   }, [currentIndex]);
+
+  // Now do conditional rendering AFTER all hooks
+  if (!transcript || transcript.length === 0) {
+    return (
+      <div className="h-60 overflow-y-auto p-4 text-gray-500 text-sm italic">
+        No transcript available for this video.
+      </div>
+    );
+  }
 
   return (
     <div
@@ -144,9 +153,14 @@ const YouTubeTranscript = ({ url }: Props) => {
         const res = await axios.get(
           `http://localhost:8000/transcript?videoUrl=${encodeURIComponent(url)}`
         );
+        console.log("Transcript response:", res.data); // ✅ ADD THIS
+        if (res.data.length === 0) {
+          console.warn("Transcript empty — possibly unavailable.");
+        }
         setTranscript(res.data);
       } catch (err) {
         console.error('Failed to fetch transcript', err);
+        setTranscript([]); 
       }
     };
 

@@ -22,5 +22,7 @@ def get_transcript(videoUrl: str):
 
         embed_and_upsert(chunks, get_embedding)
 
+        return chunks
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

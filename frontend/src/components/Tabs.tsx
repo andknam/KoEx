@@ -41,7 +41,7 @@ export default function Tabs() {
           >
             Language Analysis
           </button>
-          <button
+          {/* <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
               mode === 'search'
                 ? 'bg-black text-white'
@@ -50,7 +50,7 @@ export default function Tabs() {
             onClick={() => setMode('search')}
           >
             Semantic Search
-          </button>
+          </button> */}
           <button
             className={`px-4 py-2 rounded-md text-sm font-medium transition ${
               mode === 'youtube'
