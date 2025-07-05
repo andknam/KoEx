@@ -40,7 +40,7 @@ We transform `.vtt` subtitles into semantically meaningful chunks and upsert via
     - Handle fuzzy overlaps (e.g. `...공부하고 싶어요/하고 싶어요...` --> `...공부하고 싶어요/`)
       - Useful when phrases are not perfectly tokenized 
 7. Final Polish
-   - Remove bracket tags (`[음악]`)
+   - Remove bracket tags (e.g. `[음악]`)
    - De-duplicate repeated character sequences and n-grams (e.g. `그 그 그` --> `그`)
 8. Qdrant Upsert
    - After saving chunked subtitles as a parsed `.json`, we embed each chunk and upsert into Qdrant
