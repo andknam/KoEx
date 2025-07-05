@@ -21,13 +21,12 @@ This powers both the standalone language analysis and integrated subtitle analys
                     - tag: MAG
                 - tag: VV
                 - tag: EP
-                - tag: EF
+                - tag: EF (use `TAG_EQUIVALENTS` map to match `EF` or `EC` here)
             - Input: `[('나', 'NP'), ('는', 'JX'), ('안', 'MAG'), ('가', 'VV'), ('았', 'EP'), ('어요', 'EC')]`
             - Output: `[('나', 'NP'), ('는', 'JX'), ('안갔어요', 'VV')]`
 5. Morphological Grouping (meaning)
     - Greedily group linguistically meaningful units (typically noun/verb + ending)
-        - e.g. `[("평화", "NNG"), ("롭", "XSA"), ("다", "EF")]` → `[("평화", "NNG"), ("평화롭다", "VA")]`
-    - (If applicable), return the base and derived forms of the word
+        - e.g. `[("평화", "NNG"), ("롭", "XSA"), ("다", "EF")]` → `[("평화롭다", "VA")]`
 6. Morphophonological Contraction (sound)
     - Contract verb stems (e.g. `하 + 였 → 했`)
 7. Finalize tokens
@@ -35,12 +34,12 @@ This powers both the standalone language analysis and integrated subtitle analys
     - Filter out excluded tokens (stopwords, particles, etc.)
 8. Extract and tag candidate Korean words
     - Extract nouns and verbs from the final tokens
-    - Return both base and derived forms if applicable (e.g. `실천` (base) vs `실천하다` (derived))
+    - Return both base and derived forms if applicable (e.g. `평화` (base) vs `평화롭다` (derived))
 9. Final GPT integration
     - `hanja_batcher`
         - Input all base words --> returns the Hanja form of a word (if applicable), Korean gloss, Pinyin, and English gloss 
     - `korean_analyzer`
-        - Input the full original query --> returns the English gloss
+        - Input the original query --> returns the English gloss
         - Input all words (use derived only if applicable) --> returns the word, part-of-speech, English gloss, and example sentence in Korean
 10. Romanization
     - Decompose Hangul syllables into initial (초성), medial (중성), and final (종성)
