@@ -3,8 +3,6 @@
 **Analyze Korean. Search YouTube.**\
 Powered by **GPT**, **Qdrant**, and *custom grammar* + *romanization* rules
 
-<!-- ![KoEx Demo](./docs/koex-language-analysis.gif) -->
-
 ## Features
 
 ### 🧠 Language Analyzer

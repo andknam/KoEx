@@ -20,9 +20,11 @@ def replace_sajaseongeo_with_placeholders(text: str) -> tuple[str, dict]:
     placeholder_map = {}
 
     for idx, phrase in enumerate(idioms):
-        # match idiom followed immediately by optional case particle
-        pattern = re.compile(rf"{re.escape(phrase)}(?=[은는이가을를에로과와도]?)")
-        if re.search(pattern, text):
+        # match idiom followed by optional suffix (i.e. any non-whitespace char immediately after)
+        pattern = re.compile(rf"{re.escape(phrase)}\S*")
+
+        match = re.search(pattern, text)
+        if match:
             placeholder = generate_placeholder(idx)
             text = re.sub(pattern, placeholder, text, count=1)
             placeholder_map[placeholder] = phrase
