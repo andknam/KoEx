@@ -9,7 +9,7 @@ https://github.com/user-attachments/assets/3c63d1ed-d8bc-4b5a-929a-f16987fdd863
 ## Features
 
 ### 🧠 Language Analyzer
-- Character-level romanization with interlinear output
+- Syllable-level romanization with interlinear output
 - GPT-powered glossing, definitions, and 사자성어 (idiom) detection
 - Korean-to-Hanja conversion with Pinyin, 훈음, and English
 - Rule-based grammar chunking and recombination engine
