@@ -48,7 +48,7 @@ This powers both the standalone language analysis and integrated subtitle analys
         - Apply consonant assimilation (e.g. 받침 + next consonant)
         - Split double final consonants
     - Handle incomplete or partial Hangul/Jamo input (e.g. `ㅋㅋㅋ`, `ㅏㅏㅏ`)
-    - Output character-level romanization with hyphen separation (e.g. `an-nyeong-ha-se-yo`)
+    - Output syllable-level romanization with hyphen separation (e.g. `an-nyeong-ha-se-yo`)
     - Supports Hangul, English, and unknown letters
 
 ### Output Layers
