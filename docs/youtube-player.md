@@ -31,7 +31,7 @@ Flow
 ## Design Decisions
 
 ### 1. Progressive Analysis via SSE
-We use Server-Sent Events to stream progress messages to the user. This gives the user feedback and avoids waiting without notice while the backend applies grammar rules for tokenization + GPT calls.
+We use Server-Sent Events to stream progress messages to the user. This gives the user feedback and avoids waiting without notice while the backend applies grammar chunking + performs GPT calls.
 
 ### 2. Why Not Precompute All Chunks?
 Precomputing all subtitle chunks would:
