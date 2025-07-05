@@ -3,6 +3,8 @@
 **Analyze Korean. Search YouTube.**\
 Powered by **GPT**, **Qdrant**, and *custom grammar* + *romanization* rules
 
+https://github.com/user-attachments/assets/3c63d1ed-d8bc-4b5a-929a-f16987fdd863
+
 ## Features
 
 ### 🧠 Language Analyzer
