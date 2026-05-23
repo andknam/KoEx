@@ -18,30 +18,31 @@ def extract_candidate_korean_words(filtered_tokens: list[tuple[str, str]]) -> li
 def tag_if_derived_by_substring(entries: list[str]) -> list[dict]:
     """
     Takes a list of Korean word strings.
-    Tags each as 'derived' if it starts with a previously seen word.
-    Returns list of dicts with 'korean', 'is_derived', and optional 'base_form'.
+    Tags each as 'derived' if it starts with a shorter base word.
+    Returns entries in their original sentence order.
     """
-    base_forms: set[str] = set()
-    tagged_entries = []
+    base_form_by_word: dict[str, str] = {}
+    base_forms: list[str] = []
 
     for word in sorted(entries, key=len):
-        base_form = None
-
-        for existing in base_forms:
-            if word.startswith(existing):
-                base_form = existing
+        for base_form in base_forms:
+            if word.startswith(base_form):
+                base_form_by_word[word] = base_form
                 break
+        else:
+            base_forms.append(word)
 
+    tagged_entries = []
+
+    for word in entries:
         entry = {
             "korean": word,
-            "is_derived": base_form is not None
+            "is_derived": word in base_form_by_word,
         }
-        if base_form:
-            entry["base_form"] = base_form
+
+        if word in base_form_by_word:
+            entry["base_form"] = base_form_by_word[word]
 
         tagged_entries.append(entry)
-
-        if not base_form:
-            base_forms.add(word)
 
     return tagged_entries

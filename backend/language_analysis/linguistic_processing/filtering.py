@@ -2,6 +2,7 @@ import os
 
 from konlpy.tag import Komoran
 
+from backend.gpt.spacing_normalizer import normalize_korean_spacing
 from backend.language_analysis.linguistic_processing.grouping import group_komoran_tokens
 from backend.language_analysis.linguistic_processing.preprocessing import (
     preprocess_text,
@@ -17,7 +18,7 @@ EXCLUDE_TOKENS = {
     '과', '와', '도', '만', '까지', '밖에', '처럼', '보다', '든지',
 
     # Filler nouns / deictics
-    '그', '저', '이', '것', '거', '곳', '데', '때',
+    '그', '저', '이', '것', '거', '게', '곳', '데', '때',
 
     # High-frequency verbs/adjectives (semantically empty)
     '있', '없', '하다', '되', '같다', '좋다', '많다', '싶다',
@@ -66,7 +67,8 @@ def filter_korean_tokens(text: str) -> list[tuple[str, str]]:
 
 def prepare_text_for_tokenization(text: str) -> tuple[str, dict[str, str]]:
     preprocessed_text = preprocess_text(text)
-    return replace_sajaseongeo_with_placeholders(preprocessed_text)
+    spaced_text = normalize_korean_spacing(preprocessed_text)
+    return replace_sajaseongeo_with_placeholders(spaced_text)
 
 
 def tokenize_text(text: str) -> list[tuple[str, str]]:

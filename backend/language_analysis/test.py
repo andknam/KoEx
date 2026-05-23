@@ -1,6 +1,12 @@
 from backend.language_analysis.linguistic_processing.grouping import group_komoran_tokens
+from backend.language_analysis.linguistic_processing.filtering import (
+    is_allowed_content_token,
+)
 from backend.language_analysis.linguistic_processing.rule_matcher import merge_aux_grammar_chunks
-from backend.language_analysis.word_extraction import extract_candidate_korean_words
+from backend.language_analysis.word_extraction import (
+    extract_candidate_korean_words,
+    tag_if_derived_by_substring,
+)
 
 
 def test_merge(input_tokens: list[tuple[str, str]], expected: list[str]):
@@ -23,6 +29,20 @@ def test_extract(input_tokens: list[tuple[str, str]], expected: list[str]):
     assert result == expected, f"\nExpected: {expected}\nGot:      {result}"
 
     print(f"✅ Passed extraction: {input_tokens} → {expected}")
+
+
+def test_derived_tags_preserve_order(entries: list[str], expected: list[dict]):
+    result = tag_if_derived_by_substring(entries)
+
+    assert result == expected, f"\nExpected: {expected}\nGot:      {result}"
+
+    print(f"✅ Passed derived tagging order: {entries}")
+
+
+def test_excluded_token(token: str, tag: str):
+    assert not is_allowed_content_token(token, tag), f"Expected {token}/{tag} to be excluded"
+
+    print(f"✅ Passed exclusion: {token}/{tag}")
 
 
 if __name__ == "__main__":
@@ -94,5 +114,16 @@ if __name__ == "__main__":
     )
 
     test_extract([("초라", "XR"), ("하다", "VV")], ["초라", "하다"])
+    test_derived_tags_preserve_order(
+        ["빛내어", "빛", "이루고", "이루"],
+        [
+            {"korean": "빛내어", "is_derived": True, "base_form": "빛"},
+            {"korean": "빛", "is_derived": False},
+            {"korean": "이루고", "is_derived": True, "base_form": "이루"},
+            {"korean": "이루", "is_derived": False},
+        ],
+    )
+    test_excluded_token("게", "NNG")
+    test_excluded_token("우리", "NP")
 
     print("\n✅ All tests passed.\n")
