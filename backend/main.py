@@ -36,6 +36,59 @@ app.include_router(search_api.router)
 app.include_router(transcript_api.router)
 
 
+def extract_korean_word_candidates(input_text: str) -> list[dict]:
+    tokens = filter_korean_tokens(input_text)
+    print(f"{tokens=}")
+
+    candidate_words = extract_candidate_korean_words(tokens)
+    print(f"{candidate_words=}")
+
+    tagged_candidates = tag_if_derived_by_substring(candidate_words)
+    print(f"{tagged_candidates=}")
+    return tagged_candidates
+
+
+def select_base_korean_words(tagged_candidates: list[dict]) -> list[str]:
+    base_words = [
+        entry["korean"]
+        for entry in tagged_candidates
+        if not entry["is_derived"]
+    ]
+    print(f"{base_words=}")
+    return base_words
+
+
+def select_definition_words(tagged_candidates: list[dict]) -> list[str]:
+    derived_base_forms = {
+        entry["base_form"]
+        for entry in tagged_candidates
+        if entry["is_derived"]
+    }
+
+    definition_words = [
+        entry["korean"]
+        for entry in tagged_candidates
+        if entry["is_derived"] or entry["korean"] not in derived_base_forms
+    ]
+
+    print(f"{definition_words=}")
+    return definition_words
+
+
+def build_analysis_result(
+    sentence_gloss: str,
+    romanized: str,
+    hanja_words: list[dict],
+    korean_word_info: list[dict],
+) -> dict:
+    return {
+        "sentence_gloss": sentence_gloss,
+        "romanization": romanized,
+        "hanja_words": hanja_words,
+        "word_info": korean_word_info,
+    }
+
+
 async def analyze_generator(input_text: str):
     # Step 1: Tokenize + tag candidate korean words with base / derived
     await asyncio.sleep(0.5)
@@ -43,50 +96,20 @@ async def analyze_generator(input_text: str):
     await asyncio.sleep(0.25)
     yield "event: progress\ndata: Identifying idioms and meaningful Korean word candidates...\n\n"
 
-    tokens = filter_korean_tokens(input_text)
-    print(f"{tokens=}")
-
-    all_korean_candidate_words = extract_candidate_korean_words(tokens)
-    print(f"{all_korean_candidate_words=}")
-
-    base_and_derived_korean_words = tag_if_derived_by_substring(all_korean_candidate_words)
-    print(f"{base_and_derived_korean_words=}")
+    tagged_candidates = extract_korean_word_candidates(input_text)
     await asyncio.sleep(0.5)
 
     # Step 2: Generate hanja matches for base korean words
     yield "event: progress\ndata: Generating Hanja annotations for base Korean words...\n\n"
 
-    # send base words to hanja prompt
-    base_korean_words = [
-        entry["korean"]
-        for entry in base_and_derived_korean_words
-        if not entry["is_derived"]
-    ]
-    print(f"{base_korean_words=}")
-
+    base_korean_words = select_base_korean_words(tagged_candidates)
     hanja_words = generate_hanja_for_words(base_korean_words)
     await asyncio.sleep(0.5)
 
     # Step 3: Generate gloss and korean word information
     yield "event: progress\ndata: Creating sentence gloss and Korean word definitions...\n\n"
 
-    # send derived words to korean info prompt
-    derived_variants = set()
-    base_candidates = set()
-
-    for entry in base_and_derived_korean_words:
-        if entry["is_derived"]:
-            derived_variants.add(entry["base_form"])
-        else:
-            base_candidates.add(entry["korean"])
-
-    derived_korean_words = [
-        entry["korean"]
-        for entry in base_and_derived_korean_words
-        if entry["is_derived"] or entry["korean"] not in derived_variants
-    ]
-
-    print(f"{derived_korean_words=}")
+    derived_korean_words = select_definition_words(tagged_candidates)
     sentence_gloss, korean_word_info = analyze_korean_sentence(
         input_text, derived_korean_words
     )
@@ -100,12 +123,12 @@ async def analyze_generator(input_text: str):
     # Step 5: Finalizing
     yield "event: progress\ndata: Finalizing response...\n\n"
 
-    result = {
-        "sentence_gloss": sentence_gloss,
-        "romanization": romanized,
-        "hanja_words": hanja_words,
-        "word_info": korean_word_info,
-    }
+    result = build_analysis_result(
+        sentence_gloss,
+        romanized,
+        hanja_words,
+        korean_word_info,
+    )
 
     yield f"event: result\ndata: {json.dumps(result, ensure_ascii=False)}\n\n"
 

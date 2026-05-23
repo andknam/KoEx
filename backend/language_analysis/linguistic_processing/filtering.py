@@ -2,9 +2,14 @@ import os
 
 from konlpy.tag import Komoran
 
-from backend.language_analysis.linguistic_processing.preprocessing import preprocess_text, replace_sajaseongeo_with_placeholders
-from backend.language_analysis.linguistic_processing.rule_matcher import merge_aux_grammar_chunks
 from backend.language_analysis.linguistic_processing.grouping import group_komoran_tokens
+from backend.language_analysis.linguistic_processing.preprocessing import (
+    preprocess_text,
+    replace_sajaseongeo_with_placeholders,
+)
+from backend.language_analysis.linguistic_processing.rule_matcher import (
+    merge_aux_grammar_chunks,
+)
 
 EXCLUDE_TOKENS = {
     # Particles
@@ -27,54 +32,85 @@ EXCLUDE_TOKENS = {
     '어떻게', '왜', '언제', '어디서', '누가', '무슨',
 }
 
+ALLOWED_POS = {
+    "NNG",
+    "NNP",
+    "NNB",
+    "NR",
+    "VV",
+    "VA",
+    "VX",
+    "VCN",
+    "VCP",
+    "MAG",
+    "MAJ",
+    "XR",
+    "SN",
+    "SL",
+    "SH",
+    "MM",
+}
+
 current_dir = os.path.dirname(__file__)
 user_dic_path = os.path.join(current_dir, "user.dic")
 komoran = Komoran(userdic=user_dic_path)
 
 
 def filter_korean_tokens(text: str) -> list[tuple[str, str]]:
-    # preprocess text + replace idioms with placeholders
+    """Run the full Korean token filtering pipeline."""
+    text_with_placeholders, placeholder_map = prepare_text_for_tokenization(text)
+    tagged_text = tokenize_text(text_with_placeholders)
+    grouped_tokens = apply_grouping_pipeline(tagged_text)
+    return filter_allowed_tokens(grouped_tokens, placeholder_map)
+
+
+def prepare_text_for_tokenization(text: str) -> tuple[str, dict[str, str]]:
     preprocessed_text = preprocess_text(text)
-    text_w_placeholder, placeholder_map = replace_sajaseongeo_with_placeholders(preprocessed_text)
+    return replace_sajaseongeo_with_placeholders(preprocessed_text)
 
-    # tokenize the input
-    tagged_text = komoran.pos(text_w_placeholder)
+
+def tokenize_text(text: str) -> list[tuple[str, str]]:
+    tagged_text = komoran.pos(text)
     print(f"{tagged_text=}")
+    return tagged_text
 
-    return filter_allowed_tokens(tagged_text, placeholder_map)
 
-def filter_allowed_tokens(tagged: list[tuple[str, str]], placeholder_map: dict) -> list[tuple[str, str]]:
+def apply_grouping_pipeline(
+    tagged_tokens: list[tuple[str, str]]
+) -> list[tuple[str, str]]:
+    """Apply structural token grouping before final filtering."""
+    merged_tokens = merge_aux_grammar_chunks(tagged_tokens)
+    print(f"merged_chunks={merged_tokens}")
+
+    grouped_tokens = group_komoran_tokens(merged_tokens)
+    print(f"{grouped_tokens=}")
+    return grouped_tokens
+
+
+def is_allowed_content_token(token: str, tag: str) -> bool:
+    return (
+        tag in ALLOWED_POS or tag.startswith("aux_") or tag.startswith("verb_")
+    ) and token not in EXCLUDE_TOKENS
+
+
+def filter_allowed_tokens(
+    grouped_tokens: list[tuple[str, str]], placeholder_map: dict[str, str]
+) -> list[tuple[str, str]]:
     """
     Filters morphemes to include only meaningful content tokens,
     while restoring any placeholder-replaced 사자성어.
     """
-    ALLOWED_POS = {
-        'NNG', 'NNP', 'NNB', 'NR',      # Nouns
-        'VV', 'VA', 'VX', 'VCN', 'VCP', # Verbs, adjectives, auxiliary, copula
-        'MAG', 'MAJ',                   # Adverbs
-        'XR',                           # Roots
-        'SN', 'SL', 'SH',               # Numbers, foreign, sino
-        'MM'                            # Determiner
-    }
+    final_tokens: list[tuple[str, str]] = []
 
-    # merge auxiliary and grammar phrases like 하겠다, 나가야 하다, etc.
-    grouped = merge_aux_grammar_chunks(tagged)
-    print(f"merged_chunks={grouped}")
-
-    # group morphologically relevant constructions (e.g., NNG + XSV + EF → 변화하다)
-    grouped = group_komoran_tokens(grouped)
-    print(f"{grouped=}")
-    final_tokens = []
-
-    for token, tag in grouped:
+    for token, tag in grouped_tokens:
         if token in placeholder_map:
-            final_tokens.append((placeholder_map[token], 'NNP'))
-
-        elif token.startswith("＠＠"):
+            final_tokens.append((placeholder_map[token], "NNP"))
             continue
 
-        elif (tag in ALLOWED_POS or tag.startswith("aux_") or tag.startswith("verb_")):
-            if token not in EXCLUDE_TOKENS:
-                final_tokens.append((token, tag))
+        if token.startswith("＠＠"):
+            continue
+
+        if is_allowed_content_token(token, tag):
+            final_tokens.append((token, tag))
 
     return final_tokens

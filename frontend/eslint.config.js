@@ -3,6 +3,10 @@ import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import prettier from 'eslint-config-prettier';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
@@ -13,8 +17,8 @@ export default [
       parser: tseslint.parser,
       parserOptions: {
         sourceType: 'module',
-        project: './tsconfig.json',
-        tsconfigRootDir: process.cwd(),
+        project: ['./tsconfig.app.json', './tsconfig.node.json'],
+        tsconfigRootDir,
       },
     },
     plugins: {
@@ -38,6 +42,7 @@ export default [
         'warn',
         { argsIgnorePattern: '^_' },
       ],
+      '@typescript-eslint/no-explicit-any': 'warn',
     },
     settings: {
       react: {

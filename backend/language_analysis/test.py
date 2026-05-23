@@ -1,5 +1,6 @@
 from backend.language_analysis.linguistic_processing.grouping import group_komoran_tokens
 from backend.language_analysis.linguistic_processing.rule_matcher import merge_aux_grammar_chunks
+from backend.language_analysis.word_extraction import extract_candidate_korean_words
 
 
 def test_merge(input_tokens: list[tuple[str, str]], expected: list[str]):
@@ -14,6 +15,14 @@ def test_merge(input_tokens: list[tuple[str, str]], expected: list[str]):
     print(
         f"✅ Passed: {' + '.join([t[0] for t in input_tokens])} → {' + '.join(expected)}"
     )
+
+
+def test_extract(input_tokens: list[tuple[str, str]], expected: list[str]):
+    result = extract_candidate_korean_words(input_tokens)
+
+    assert result == expected, f"\nExpected: {expected}\nGot:      {result}"
+
+    print(f"✅ Passed extraction: {input_tokens} → {expected}")
 
 
 if __name__ == "__main__":
@@ -83,5 +92,7 @@ if __name__ == "__main__":
         ],
         ['공부', '공부하지', '않으려고했어요'],
     )
+
+    test_extract([("초라", "XR"), ("하다", "VV")], ["초라", "하다"])
 
     print("\n✅ All tests passed.\n")

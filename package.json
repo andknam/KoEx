@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "dev": "sh -c 'trap \"kill 0\" EXIT; npm run dev:backend & npm run dev:frontend & wait'",
+    "dev:backend": "uvicorn backend.main:app --reload",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.4",

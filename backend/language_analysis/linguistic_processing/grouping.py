@@ -1,134 +1,173 @@
-PARTICLE_TAGS = {"JKS", "JKC", "JKO", "JKB", "JKG", "JX", "JC"}
+from collections.abc import Callable
 
-def is_verb_like(tag: str) -> bool:
-    return tag in {"VV", "VA", "VX", "VCN", "VCP"} or tag.startswith("verb_")
+
+PARTICLE_TAGS = {"JKS", "JKC", "JKO", "JKB", "JKG", "JX", "JC"}
+VERB_LIKE_TAGS = {"VV", "VA", "VX", "VCN", "VCP"}
+VERB_CHAIN_SUFFIX_TAGS = {"ETM", "NNB", "JX", "VV", "EF", "EC"}
+ENDING_TAGS = {"EC", "EF"}
+
+GroupedToken = tuple[str, str]
+MatchResult = tuple[list[GroupedToken], int] | None
+GroupingRule = Callable[[list[GroupedToken], int], MatchResult]
+
 
 def group_komoran_tokens(tagged: list[tuple[str, str]]) -> list[tuple[str, str]]:
-    grouped = []
+    grouped: list[tuple[str, str]] = []
     i = 0
+
     while i < len(tagged):
-        word, tag = tagged[i]
+        grouped, i = apply_grouping_rules(grouped, tagged, i)
 
-        # keep pre-merged aux grammar tokens
+    return normalize_grouped_tags(grouped)
+
+
+def apply_grouping_rules(
+    grouped: list[tuple[str, str]], tagged: list[tuple[str, str]], index: int
+) -> tuple[list[tuple[str, str]], int]:
+    word, tag = tagged[index]
+
+    if tag.startswith(("aux_", "verb_")):
+        return merge_premerged_verb_chunk(grouped, tagged, index)
+
+    if tag in PARTICLE_TAGS:
+        return grouped, index + 1
+
+    for matcher in GROUPING_RULES:
+        match = matcher(tagged, index)
+        if not match:
+            continue
+
+        grouped.extend(match[0])
+        return grouped, match[1]
+
+    grouped.append((word, tag))
+    return grouped, index + 1
+
+
+def normalize_grouped_tags(
+    grouped: list[tuple[str, str]]
+) -> list[tuple[str, str]]:
+    normalized: list[tuple[str, str]] = []
+
+    for word, tag in grouped:
         if tag.startswith(("aux_", "verb_")):
-            if grouped:
-                prev_word, prev_tag = grouped[-1]
+            normalized.append((word, "VV"))
+        else:
+            normalized.append((word, tag))
 
-                # merge with previous verb or treat as main verb
-                if is_verb_like(prev_tag):
-                    merged = prev_word + word
-                    grouped[-1] = (merged, "VV")
-                    i += 1
-                    continue
+    return normalized
 
-            # treat standalone aux/verb chunks as main verb
-            grouped.append((word, "VV"))
-            i += 1
-            continue
 
-        # skip standalone particles (they shouldn't trigger group rules)
-        if tag in PARTICLE_TAGS:
-            i += 1
-            continue
+def is_verb_like(tag: str) -> bool:
+    return tag in VERB_LIKE_TAGS or tag.startswith("verb_")
 
-        # greedy aux/verb suffix merging (VX + ETM + NNB + JX + VV + ...)
-        if is_verb_like(tag):
-            base = word
-            i += 1
 
-            while i < len(tagged) and tagged[i][1] in {"ETM", "NNB", "JX", "VV", "EF", "EC"}:
-                base += tagged[i][0]
-                i += 1
+def merge_premerged_verb_chunk(
+    grouped: list[tuple[str, str]], tagged: list[tuple[str, str]], index: int
+) -> tuple[list[tuple[str, str]], int]:
+    word, _ = tagged[index]
 
-            grouped.append((base, "VV"))
-            continue
+    if grouped and is_verb_like(grouped[-1][1]):
+        prev_word, _ = grouped[-1]
+        grouped[-1] = (prev_word + word, "VV")
+        return grouped, index + 1
 
-        # NNG + XSV + EF (e.g., 변화하다)
-        # noun + verb-forming suffix + ending --> verb derived from noun
-        if (
-            tag == "NNG"
-            and i + 2 < len(tagged)
-            and tagged[i + 1][1] == "XSV"
-            and tagged[i + 2][1] == "EF"
-        ):
-            grouped.append((word, "NNG"))  # base noun
-            grouped.append((word + tagged[i + 1][0] + tagged[i + 2][0], "VV"))
-            i += 3
-            continue
+    grouped.append((word, "VV"))
+    return grouped, index + 1
 
-        # NNG + XSV (+ EC) (e.g., 실천하고)
-        # compound verb stem (with optional connector after)
-        if tag == "NNG" and i + 1 < len(tagged):
-            next_word, next_tag = tagged[i + 1]
-            if next_tag == "XSV":
-                if i + 2 < len(tagged) and tagged[i + 2][1].startswith("aux_"):
-                    grouped.append((word, "NNG"))
-                    grouped.append((word + next_word + tagged[i + 2][0], "VV"))
-                    i += 3
-                    continue
 
-                grouped.append((word, "NNG"))
-                combined = word + next_word
-                i += 2
+def match_verb_chain(
+    tagged: list[tuple[str, str]], index: int
+) -> MatchResult:
+    word, tag = tagged[index]
+    if not is_verb_like(tag):
+        return None
 
-                if i < len(tagged) and tagged[i][1] in {"EC", "EF"}:
-                    combined += tagged[i][0]
-                    i += 1
+    combined = word
+    next_index = index + 1
 
-                grouped.append((combined, "VV"))
-                continue
+    while next_index < len(tagged) and tagged[next_index][1] in VERB_CHAIN_SUFFIX_TAGS:
+        combined += tagged[next_index][0]
+        next_index += 1
 
-        # VV + ETM (e.g., 하 + ㄹ → 할)
-        if tag == "VV" and i + 1 < len(tagged):
-            next_word, next_tag = tagged[i + 1]
-            if next_tag == "ETM":
-                combined = contract_korean([word, next_word])
-                grouped.append((combined, "VV"))
-                i += 2
-                continue
+    return [(combined, "VV")], next_index
 
-        # NNG + XSA + EF (e.g., 평화롭다)
-        # noun + adj-forming suffix + ending --> adj derived from noun
-        if (
-            tag == "NNG"
-            and i + 2 < len(tagged)
-            and tagged[i + 1][1] == "XSA"
-            and tagged[i + 2][1] == "EF"
-        ):
-            grouped.append((word, "NNG"))  # base noun
-            grouped.append((word + tagged[i + 1][0] + tagged[i + 2][0], "VA"))
-            i += 3
-            continue
 
-        # NNG + XSN (e.g., 가능성)
-        # noun + noun suffix = compound abstract noun
-        if tag == "NNG" and i + 1 < len(tagged):
-            next_word, next_tag = tagged[i + 1]
-            if next_tag == "XSN":
-                grouped.append((word, "NNG"))  # base noun
-                grouped.append((word + next_word, "NNG"))
-                i += 2
-                continue
+def match_noun_derived_form(
+    tagged: list[tuple[str, str]], index: int
+) -> MatchResult:
+    word, tag = tagged[index]
+    if tag != "NNG" or index + 1 >= len(tagged):
+        return None
 
-        # VV/VX/VA/VCN/VCP + EC/EF (e.g., 하고)
-        # verb/adj stems + verb ending
-        if is_verb_like(tag) and i + 1 < len(tagged):
-            next_word, next_tag = tagged[i + 1]
-            if next_tag in {"EC", "EF"}:
-                grouped.append((word + next_word, tag))
-                i += 2
-                continue
+    next_word, next_tag = tagged[index + 1]
 
-        # Default case
-        grouped.append((word, tag))
-        i += 1
+    if next_tag == "XSV":
+        return build_noun_verb_group(tagged, index, word, next_word)
 
-    # normalize: turn aux_*/verb_* tags into VV for downstream logic
-    for idx, (word, tag) in enumerate(grouped):
-        if tag.startswith(("aux_", "verb_")):
-            grouped[idx] = (word, "VV")
+    if (
+        next_tag == "XSA"
+        and index + 2 < len(tagged)
+        and tagged[index + 2][1] == "EF"
+    ):
+        adjective = word + next_word + tagged[index + 2][0]
+        return [(word, "NNG"), (adjective, "VA")], index + 3
 
-    return grouped
+    if next_tag == "XSN":
+        return [(word, "NNG"), (word + next_word, "NNG")], index + 2
+
+    return None
+
+
+def match_contracted_verb_form(
+    tagged: list[tuple[str, str]], index: int
+) -> MatchResult:
+    word, tag = tagged[index]
+
+    if (
+        tag == "VV"
+        and index + 1 < len(tagged)
+        and tagged[index + 1][1] == "ETM"
+    ):
+        combined = contract_korean([word, tagged[index + 1][0]])
+        return [(combined, "VV")], index + 2
+
+    if (
+        is_verb_like(tag)
+        and index + 1 < len(tagged)
+        and tagged[index + 1][1] in ENDING_TAGS
+    ):
+        return [(word + tagged[index + 1][0], tag)], index + 2
+
+    return None
+
+
+GROUPING_RULES: tuple[GroupingRule, ...] = (
+    match_verb_chain,
+    match_noun_derived_form,
+    match_contracted_verb_form,
+)
+
+
+def build_noun_verb_group(
+    tagged: list[tuple[str, str]], index: int, noun: str, suffix: str
+) -> tuple[list[tuple[str, str]], int]:
+    if index + 2 < len(tagged) and tagged[index + 2][1] == "EF":
+        verb = noun + suffix + tagged[index + 2][0]
+        return [(noun, "NNG"), (verb, "VV")], index + 3
+
+    if index + 2 < len(tagged) and tagged[index + 2][1].startswith("aux_"):
+        verb = noun + suffix + tagged[index + 2][0]
+        return [(noun, "NNG"), (verb, "VV")], index + 3
+
+    combined = noun + suffix
+    index += 2
+
+    if index < len(tagged) and tagged[index][1] in ENDING_TAGS:
+        combined += tagged[index][0]
+        index += 1
+
+    return [(noun, "NNG"), (combined, "VV")], index
 
 
 def contract_korean(tokens: list[str]) -> str:
